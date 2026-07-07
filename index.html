@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>zine machine — the home zine press</title>
+<title>zine machine — your in-the-field zine press</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Special+Elite&family=Playfair+Display:wght@700&family=Lora&family=Oswald:wght@600&family=Permanent+Marker&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -387,10 +387,144 @@
   .pbadge{font-family:var(--mono);font-size:10px;color:#141414;padding:2px 8px;border-radius:10px;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.25)}
   .cb-note{font-family:var(--mono);font-size:11px;color:var(--muted);margin:8px 2px 0}
 
+
+  /* ===== how-to guide overlay ===== */
+  #guideBtn{
+    font-family:var(--mono);font-size:12px;cursor:pointer;
+    background:var(--pop,#D1D001);color:#1a1a1a;border:none;
+    border-radius:2px;padding:6px 12px;font-weight:600;
+  }
+  #guideBtn:hover{filter:brightness(1.05)}
+  #guideModal{
+    position:fixed;inset:0;z-index:2000;display:none;
+    background:rgba(20,24,30,.55);
+    -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
+  }
+  #guideModal.open{display:block}
+  #guideModal .gm-sheet{
+    position:absolute;top:3vh;left:50%;transform:translateX(-50%);
+    width:min(860px,94vw);max-height:94vh;overflow-y:auto;
+    background:var(--paper);border:1px solid var(--line);
+    box-shadow:0 18px 60px rgba(0,0,0,.35);
+  }
+  #guideModal .gm-close{
+    position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;
+    background:var(--blockhead);color:#EAF0F7;padding:10px 16px;
+    font-family:var(--mono);font-size:12px;letter-spacing:.02em;
+  }
+  #guideModal .gm-close button{
+    font-family:var(--mono);font-size:12px;cursor:pointer;
+    background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.55);
+    border-radius:2px;padding:5px 12px;
+  }
+  #guideModal .gm-close button:hover{background:#fff;color:var(--blockhead)}
+  #guideModal .gm-body{padding:26px 26px 40px}
+  /* guide-content styles, namespaced so they don't affect the tool */
+  #guideModal .g-wordmark{font-family:var(--sans);font-weight:700;text-transform:lowercase;font-size:clamp(30px,6vw,52px);line-height:1;letter-spacing:-.03em;color:var(--ink);margin-bottom:6px}
+  #guideModal .g-spec{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:lowercase;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+  #guideModal .bluescrap{background:var(--scrap);color:#EAF0F7;padding:22px 24px;margin-bottom:26px}
+  #guideModal .bluescrap p{margin:0}#guideModal .bluescrap b{color:#fff}
+  #guideModal .g-block{background:var(--paper2);border:1px solid var(--line);margin:0 0 20px}
+  #guideModal .g-head{background:var(--blockhead);color:#EAF0F7;display:flex;align-items:baseline;gap:14px;padding:10px 16px}
+  #guideModal .g-num{font-family:var(--mono);font-weight:700;font-size:13px;color:#fff}
+  #guideModal .g-title{font-family:var(--sans);font-weight:700;font-size:18px;letter-spacing:-.01em;text-transform:lowercase;color:#fff}
+  #guideModal .g-inner{padding:18px 18px 22px}
+  #guideModal .g-lede{font-family:var(--mono);font-size:14px;max-width:68ch;margin-bottom:14px;color:var(--ink);line-height:1.6}
+  #guideModal .g-diagram{border:1px solid var(--line);background:#fff;padding:12px;border-radius:4px}
+  #guideModal .g-tip{background:#fff;border:1px solid var(--line);border-left:3px solid var(--pop,#D1D001);padding:18px 20px;margin-top:6px}
+  #guideModal .g-tip h3{font-family:var(--sans);font-size:15px;margin-bottom:8px;color:var(--ink)}
+  #guideModal .g-tip ul{margin:0;padding-left:18px;font-family:var(--mono);font-size:13px;color:var(--ink)}
+  #guideModal .g-tip li{margin-bottom:5px}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+<div id="guideModal" aria-hidden="true">
+  <div class="gm-sheet" role="dialog" aria-label="How to make a zine">
+    <div class="gm-close"><span>how to make a zine</span><button type="button" id="guideClose">close ✕</button></div>
+    <div class="gm-body">
+
+  <p class="g-spec"><span>how to make a zine — step by step</span><span>zine machine · environmental media studio</span></p>
+  <h1 class="g-wordmark">making a zine</h1>
+
+  <div class="bluescrap">
+    <p>This guide walks you through making a zine in <b>zine machine</b>, from opening the tool to folding the finished pages. Each step shows the button to press, circled in <b>yellow</b>. If you’re working in a group, start at step 1; if you’re on your own, jump to step 3.</p>
+  </div>
+
+  <div class="g-block">
+    <div class="g-head"><span class="g-num">1</span><span class="g-title">join your group</span></div>
+    <div class="g-inner">
+      <p class="g-lede">If you’re working in a group, this is how you get into the same shared zine. (Working alone? Skip to step 3.)</p>
+      <div class="g-diagram"><svg viewBox="0 0 640 150" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:640px;height:auto;display:block"><rect x="1" y="1" width="638" height="148" rx="6" fill="#FFFFFF" stroke="#DAD8D2" stroke-width="1.5"/><rect x="0" y="0" width="640" height="150" rx="3" fill="#3A57AD"/><text x="20" y="34" fill="#EAF0F7" text-anchor="start" font-family="Manrope,sans-serif" font-size="12" font-weight="600">GROUP ZINE</text><rect x="20" y="58" width="150" height="34" rx="3" fill="#FFFFFF" stroke="#DAD8D2" stroke-width="1.3"/><text x="29" y="79.0" fill="#9a9a94" font-family="Manrope,sans-serif" font-size="11">your name</text><rect x="182" y="58" width="180" height="34" rx="3" fill="#FFFFFF" stroke="#DAD8D2" stroke-width="1.3"/><text x="191" y="79.0" fill="#9a9a94" font-family="Manrope,sans-serif" font-size="11">access code</text><rect x="374" y="58" width="80" height="34" rx="3" fill="#FFFFFF"/><text x="414.0" y="79.0" fill="#3A57AD" text-anchor="middle" font-family="Manrope,sans-serif" font-size="11" font-weight="600">join</text><rect x="176" y="52" width="284" height="46" rx="9" fill="none" stroke="#C9C801" stroke-width="4"/><rect x="176" y="52" width="284" height="46" rx="9" fill="#C9C801" opacity="0.10"/><circle cx="468" cy="52" r="15" fill="#C9C801" stroke="#FFFFFF" stroke-width="2"/><text x="468" y="57" fill="#1A1A1A" text-anchor="middle" font-family="Manrope,sans-serif" font-size="15" font-weight="700">1</text><text x="20" y="120" fill="#EAF0F7" text-anchor="start" font-family="Manrope,sans-serif" font-size="12" font-weight="400">Type your name, type the code your instructor gave your group, then press Join.</text></svg></div>
+    </div>
+  </div>
+  <div class="g-block">
+    <div class="g-head"><span class="g-num">2</span><span class="g-title">divide up the pages</span></div>
+    <div class="g-inner">
+      <p class="g-lede">Everyone with the same code edits one zine together, live. Decide who takes which page so you don’t overwrite each other.</p>
+      <div class="g-diagram"><svg viewBox="0 0 640 150" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:640px;height:auto;display:block"><rect x="1" y="1" width="638" height="148" rx="6" fill="#FFFFFF" stroke="#DAD8D2" stroke-width="1.5"/><rect x="0" y="0" width="640" height="44" rx="3" fill="#3A57AD"/><text x="16" y="28" fill="#EAF0F7" text-anchor="start" font-family="Manrope,sans-serif" font-size="12" font-weight="600">group ecp-3</text><circle cx="150" cy="22" r="5" fill="#F4C24B"/><text x="160" y="26" fill="#EAF0F7" text-anchor="start" font-family="Manrope,sans-serif" font-size="11" font-weight="400">Ana (you)</text><circle cx="250" cy="22" r="5" fill="#7ED957"/><text x="260" y="26" fill="#EAF0F7" text-anchor="start" font-family="Manrope,sans-serif" font-size="11" font-weight="400">Ben</text><circle cx="320" cy="22" r="5" fill="#8AB4F8"/><text x="330" y="26" fill="#EAF0F7" text-anchor="start" font-family="Manrope,sans-serif" font-size="11" font-weight="400">Cy</text><rect x="30" y="66" width="150" height="64" rx="3" fill="#FFFFFF" stroke="#DAD8D2" stroke-width="1.3"/><text x="105" y="102" fill="#62655F" text-anchor="middle" font-family="Manrope,sans-serif" font-size="12" font-weight="400">page 2</text><rect x="36" y="72" width="86" height="18" rx="9" fill="#7ED957"/><text x="79" y="85" fill="#1A1A1A" text-anchor="middle" font-family="Manrope,sans-serif" font-size="10" font-weight="600">Ben editing</text><circle cx="150" cy="66" r="15" fill="#C9C801" stroke="#FFFFFF" stroke-width="2"/><text x="150" y="71" fill="#1A1A1A" text-anchor="middle" font-family="Manrope,sans-serif" font-size="15" font-weight="700">2</text><text x="210" y="86" fill="#1A1A1A" text-anchor="start" font-family="Manrope,sans-serif" font-size="12" font-weight="400">See who’s in your zine along the top.</text><text x="210" y="108" fill="#1A1A1A" text-anchor="start" font-family="Manrope,sans-serif" font-size="12" font-weight="400">A colored badge shows who’s on which page —</text><text x="210" y="126" fill="#1A1A1A" text-anchor="start" font-family="Manrope,sans-serif" font-size="12" font-weight="400">split them up so you’re not on the same one.</text></svg></div>
+    </div>
+  </div>
+  <div class="g-block">
+    <div class="g-head"><span class="g-num">3</span><span class="g-title">pick a format</span></div>
+    <div class="g-inner">
+      <p class="g-lede">Tell the tool how your zine will be built and what paper you’ll print on.</p>
+      <div class="g-diagram"><svg viewBox="0 0 640 172" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:640px;height:auto;display:block"><rect x="1" y="1" width="638" height="170" rx="6" fill="#FFFFFF" stroke="#DAD8D2" stroke-width="1.5"/><text x="20" y="30" fill="#1A1A1A" text-anchor="start" font-family="Manrope,sans-serif" font-size="13" font-weight="700">1.0  select a format</text><rect x="20" y="48" width="285" height="104" rx="3" fill="#FFFFFF" stroke="#DAD8D2" stroke-width="1.3"/><text x="38" y="74" fill="#1A1A1A" text-anchor="start" font-family="Manrope,sans-serif" font-size="12" font-weight="600">one-sheet mini</text><text x="38" y="96" fill="#62655F" text-anchor="start" font-family="Manrope,sans-serif" font-size="11" font-weight="400">8 pages · one cut · no staples</text><text x="38" y="116" fill="#62655F" text-anchor="start" font-family="Manrope,sans-serif" font-size="11" font-weight="400">print one sheet, fold, one snip</text><rect x="335" y="48" width="285" height="104" rx="3" fill="#FFFFFF" stroke="#DAD8D2" stroke-width="1.3"/><text x="353" y="74" fill="#1A1A1A" text-anchor="start" font-family="Manrope,sans-serif" font-size="12" font-weight="600">stapled booklet</text><text x="353" y="96" fill="#62655F" text-anchor="start" font-family="Manrope,sans-serif" font-size="11" font-weight="400">up to 24 pages · double-sided</text><text x="353" y="116" fill="#62655F" text-anchor="start" font-family="Manrope,sans-serif" font-size="11" font-weight="400">print, fold, staple the spine</text><rect x="14" y="42" width="297" height="116" rx="9" fill="none" stroke="#C9C801" stroke-width="4"/><rect x="14" y="42" width="297" height="116" rx="9" fill="#C9C801" opacity="0.10"/><circle cx="20" cy="48" r="15" fill="#C9C801" stroke="#FFFFFF" stroke-width="2"/><text x="20" y="53" fill="#1A1A1A" text-anchor="middle" font-family="Manrope,sans-serif" font-size="15" font-weight="700">3</text><text x="20" y="168" fill="#62655F" text-anchor="start" font-family="Manrope,sans-serif" font-size="11" font-weight="400">Choose how your zine is built. (New here? Mini is the easiest to fold.)</text></svg></div>
+    </div>
+  </div>
+  <div class="g-block">
+    <div class="g-head"><span class="g-num">4</span><span class="g-title">load an example (optional)</span></div>
+    <div class="g-inner">
+      <p class="g-lede">The fastest way to learn the tool is to look at a finished one.</p>
+      <div class="g-diagram"><svg viewBox="0 0 640 128" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:640px;height:auto;display:block"><rect x="1" y="1" width="638" height="126" rx="6" fill="#FFFFFF" stroke="#DAD8D2" stroke-width="1.5"/><text x="20" y="32" fill="#1A1A1A" text-anchor="start" font-family="Manrope,sans-serif" font-size="13" font-weight="700">start from scratch — or see how it works</text><rect x="20" y="54" width="150" height="36" rx="3" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="1.3"/><text x="95.0" y="76.0" fill="#1A1A1A" text-anchor="middle" font-family="Manrope,sans-serif" font-size="11" font-weight="600">load an example</text><rect x="14" y="48" width="162" height="48" rx="9" fill="none" stroke="#C9C801" stroke-width="4"/><rect x="14" y="48" width="162" height="48" rx="9" fill="#C9C801" opacity="0.10"/><circle cx="20" cy="54" r="15" fill="#C9C801" stroke="#FFFFFF" stroke-width="2"/><text x="20" y="59" fill="#1A1A1A" text-anchor="middle" font-family="Manrope,sans-serif" font-size="15" font-weight="700">4</text><text x="200" y="64" fill="#1A1A1A" text-anchor="start" font-family="Manrope,sans-serif" font-size="12" font-weight="400">Press “load an example” to fill the pages with a</text><text x="200" y="84" fill="#1A1A1A" text-anchor="start" font-family="Manrope,sans-serif" font-size="12" font-weight="400">sample zine you can poke at. Clear it and start</text><text x="200" y="104" fill="#1A1A1A" text-anchor="start" font-family="Manrope,sans-serif" font-size="12" font-weight="400">your own once you see how the pieces fit.</text></svg></div>
+    </div>
+  </div>
+  <div class="g-block">
+    <div class="g-head"><span class="g-num">5</span><span class="g-title">design your pages</span></div>
+    <div class="g-inner">
+      <p class="g-lede">This is where you make your zine — words, pictures, and color, one page at a time.</p>
+      <div class="g-diagram"><svg viewBox="0 0 640 250" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:640px;height:auto;display:block"><rect x="1" y="1" width="638" height="248" rx="6" fill="#FFFFFF" stroke="#DAD8D2" stroke-width="1.5"/><text x="20" y="30" fill="#1A1A1A" text-anchor="start" font-family="Manrope,sans-serif" font-size="13" font-weight="700">2.0  design your pages</text><rect x="20" y="46" width="150" height="190" rx="3" fill="#FFFFFF" stroke="#DAD8D2" stroke-width="1.3"/><text x="95" y="145" fill="#62655F" text-anchor="middle" font-family="Manrope,sans-serif" font-size="11" font-weight="400">your page</text><rect x="186" y="46" width="434" height="30" rx="3" fill="#FFFFFF" stroke="#DAD8D2" stroke-width="1.3"/><text x="195" y="65.0" fill="#9a9a94" font-family="Manrope,sans-serif" font-size="11">heading</text><rect x="186" y="84" width="434" height="64" rx="3" fill="#FFFFFF" stroke="#DAD8D2" stroke-width="1.3"/><text x="195" y="120.0" fill="#9a9a94" font-family="Manrope,sans-serif" font-size="11">write your words here…</text><rect x="186" y="158" width="120" height="30" rx="3" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="1.3"/><text x="246.0" y="177.0" fill="#1A1A1A" text-anchor="middle" font-family="Manrope,sans-serif" font-size="11" font-weight="600">+ add image</text><rect x="180" y="152" width="132" height="42" rx="9" fill="none" stroke="#C9C801" stroke-width="4"/><rect x="180" y="152" width="132" height="42" rx="9" fill="#C9C801" opacity="0.10"/><circle cx="186" cy="158" r="15" fill="#C9C801" stroke="#FFFFFF" stroke-width="2"/><text x="186" y="163" fill="#1A1A1A" text-anchor="middle" font-family="Manrope,sans-serif" font-size="15" font-weight="700">5</text><text x="186" y="210" fill="#62655F" text-anchor="start" font-family="Manrope,sans-serif" font-size="11" font-weight="400">colors & ink:</text><circle cx="270" cy="206" r="9" fill="#F6F5F1" stroke="#DAD8D2" stroke-width="1"/><circle cx="296" cy="206" r="9" fill="#1A1A1A" stroke="#DAD8D2" stroke-width="1"/><circle cx="322" cy="206" r="9" fill="#3A57AD" stroke="#DAD8D2" stroke-width="1"/><circle cx="348" cy="206" r="9" fill="#F65058" stroke="#DAD8D2" stroke-width="1"/><circle cx="374" cy="206" r="9" fill="#FFE800" stroke="#DAD8D2" stroke-width="1"/><circle cx="400" cy="206" r="9" fill="#82D8D5" stroke="#DAD8D2" stroke-width="1"/><text x="186" y="232" fill="#62655F" text-anchor="start" font-family="Manrope,sans-serif" font-size="11" font-weight="400">For each page: add a heading, type your text, drop in up to 4 photos, and pick page colors, inks, and halftones.</text></svg></div>
+    </div>
+  </div>
+  <div class="g-block">
+    <div class="g-head"><span class="g-num">6</span><span class="g-title">preview your zine</span></div>
+    <div class="g-inner">
+      <p class="g-lede">Check how it looks and how it’ll print before you commit paper to it.</p>
+      <div class="g-diagram"><svg viewBox="0 0 640 128" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:640px;height:auto;display:block"><rect x="1" y="1" width="638" height="126" rx="6" fill="#FFFFFF" stroke="#DAD8D2" stroke-width="1.5"/><text x="20" y="32" fill="#1A1A1A" text-anchor="start" font-family="Manrope,sans-serif" font-size="13" font-weight="700">see it before you print</text><rect x="20" y="54" width="150" height="36" rx="3" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="1.3"/><text x="95.0" y="76.0" fill="#1A1A1A" text-anchor="middle" font-family="Manrope,sans-serif" font-size="11" font-weight="600">preview the zine</text><rect x="14" y="48" width="162" height="48" rx="9" fill="none" stroke="#C9C801" stroke-width="4"/><rect x="14" y="48" width="162" height="48" rx="9" fill="#C9C801" opacity="0.10"/><circle cx="20" cy="54" r="15" fill="#C9C801" stroke="#FFFFFF" stroke-width="2"/><text x="20" y="59" fill="#1A1A1A" text-anchor="middle" font-family="Manrope,sans-serif" font-size="15" font-weight="700">6</text><text x="200" y="58" fill="#1A1A1A" text-anchor="start" font-family="Manrope,sans-serif" font-size="12" font-weight="400">“Preview the zine” opens a flip-through of your</text><text x="200" y="78" fill="#1A1A1A" text-anchor="start" font-family="Manrope,sans-serif" font-size="12" font-weight="400">finished booklet. Section 3.0 (“check the press</text><text x="200" y="98" fill="#1A1A1A" text-anchor="start" font-family="Manrope,sans-serif" font-size="12" font-weight="400">sheets”) shows how the pages land on paper.</text></svg></div>
+    </div>
+  </div>
+  <div class="g-block">
+    <div class="g-head"><span class="g-num">7</span><span class="g-title">print your zine</span></div>
+    <div class="g-inner">
+      <p class="g-lede">Turn your pages into a printable file.</p>
+      <div class="g-diagram"><svg viewBox="0 0 640 150" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:640px;height:auto;display:block"><rect x="1" y="1" width="638" height="148" rx="6" fill="#FFFFFF" stroke="#DAD8D2" stroke-width="1.5"/><text x="20" y="32" fill="#1A1A1A" text-anchor="start" font-family="Manrope,sans-serif" font-size="13" font-weight="700">3.0  print your zine</text><rect x="20" y="54" width="150" height="40" rx="3" fill="#3A57AD"/><text x="95.0" y="78.0" fill="#FFFFFF" text-anchor="middle" font-family="Manrope,sans-serif" font-size="11" font-weight="600">print the pdf</text><rect x="186" y="54" width="150" height="40" rx="3" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="1.3"/><text x="261.0" y="78.0" fill="#1A1A1A" text-anchor="middle" font-family="Manrope,sans-serif" font-size="11" font-weight="600">print with riso</text><rect x="14" y="48" width="162" height="48" rx="9" fill="none" stroke="#C9C801" stroke-width="4"/><rect x="14" y="48" width="162" height="48" rx="9" fill="#C9C801" opacity="0.10"/><circle cx="20" cy="54" r="15" fill="#C9C801" stroke="#FFFFFF" stroke-width="2"/><text x="20" y="59" fill="#1A1A1A" text-anchor="middle" font-family="Manrope,sans-serif" font-size="15" font-weight="700">7</text><text x="20" y="120" fill="#1A1A1A" text-anchor="start" font-family="Manrope,sans-serif" font-size="12" font-weight="400">“Print the pdf” makes a normal printable file — this is the one you want most of the time.</text><text x="20" y="140" fill="#62655F" text-anchor="start" font-family="Manrope,sans-serif" font-size="11" font-weight="400">“Print with riso” makes color-separation sheets for a risograph printer (advanced).</text></svg></div>
+    </div>
+  </div>
+  <div class="g-block">
+    <div class="g-head"><span class="g-num">8</span><span class="g-title">fold & cut</span></div>
+    <div class="g-inner">
+      <p class="g-lede">The last step happens off-screen, with your hands.</p>
+      <div class="g-diagram"><svg viewBox="0 0 640 140" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:640px;height:auto;display:block"><rect x="1" y="1" width="638" height="138" rx="6" fill="#FFFFFF" stroke="#DAD8D2" stroke-width="1.5"/><text x="20" y="32" fill="#1A1A1A" text-anchor="start" font-family="Manrope,sans-serif" font-size="13" font-weight="700">4.0  fold & cut</text><rect x="30" y="52" width="76" height="56" fill="none" stroke="#1A1A1A" stroke-width="1.6"/><line x1="68" y1="52" x2="68" y2="108" stroke="#1A1A1A" stroke-width="1.2" stroke-dasharray="4 4"/><line x1="30" y1="80" x2="68" y2="80" stroke="#F65058" stroke-width="2.4" stroke-dasharray="5 4"/><circle cx="30" cy="52" r="15" fill="#C9C801" stroke="#FFFFFF" stroke-width="2"/><text x="30" y="57" fill="#1A1A1A" text-anchor="middle" font-family="Manrope,sans-serif" font-size="15" font-weight="700">8</text><text x="140" y="66" fill="#1A1A1A" text-anchor="start" font-family="Manrope,sans-serif" font-size="12" font-weight="400">Follow the fold-and-cut pictures at the bottom of</text><text x="140" y="86" fill="#1A1A1A" text-anchor="start" font-family="Manrope,sans-serif" font-size="12" font-weight="400">the tool. They show every fold, and the one short</text><text x="140" y="106" fill="#1A1A1A" text-anchor="start" font-family="Manrope,sans-serif" font-size="12" font-weight="400">cut (the pink line) that turns your sheet into a zine.</text></svg></div>
+    </div>
+  </div>
+
+  <div class="g-tip">
+    <h3>a few good habits</h3>
+    <ul>
+      <li><b>In a group?</b> Talk to each other. Claim a page (“I’ve got the cover”) so two people aren’t editing the same one at once.</li>
+      <li><b>Your work saves automatically</b> — in a group, to your shared zine; solo, use “save project” to keep a copy you can re-open later.</li>
+      <li><b>Preview before you print.</b> It’s the easiest way to catch a page that’s upside down or empty.</li>
+      <li><b>“Print the pdf” is the everyday choice.</b> Only reach for “print with riso” if you’re using a risograph.</li>
+    </ul>
+  </div>
+
+  <p class="g-foot">Made with zine machine · Environmental Media Studio, Georgia State University</p>
+
+    </div>
+  </div>
+</div>
+
 <div class="collabbar" id="collabBar">
   <span class="cb-label">group zine</span>
   <span class="cb-form" id="cbForm">
@@ -402,6 +536,7 @@
     <span id="cbGroupName" class="cb-label"></span>
     <span class="cb-who" id="cbWho"></span>
   </span>
+  <button id="guideBtn" type="button">help guide</button>
   <span class="cb-status">
     <span class="cb-dot" id="cbDot"></span><span id="cbState">solo — not in a group</span>
     <button id="cbLeave" type="button" style="display:none">leave</button>
@@ -2394,6 +2529,19 @@
   // queueRender() calls collabNotify() on every change; we push if in a group.
   function collabNotify(){ if(groupCode && Date.now() > suppressPushUntil) pushSoon(); }
 
+})();
+</script>
+<script>
+(function(){
+  var modal = document.getElementById("guideModal");
+  var openBtn = document.getElementById("guideBtn");
+  var closeBtn = document.getElementById("guideClose");
+  function open(){ modal.classList.add("open"); modal.setAttribute("aria-hidden","false"); modal.querySelector(".gm-sheet").scrollTop = 0; }
+  function close(){ modal.classList.remove("open"); modal.setAttribute("aria-hidden","true"); }
+  if(openBtn) openBtn.addEventListener("click", open);
+  if(closeBtn) closeBtn.addEventListener("click", close);
+  modal.addEventListener("click", function(e){ if(e.target === modal) close(); });   // click backdrop to close
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && modal.classList.contains("open")) close(); });
 })();
 </script>
 </body>
