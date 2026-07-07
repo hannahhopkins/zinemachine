@@ -1,0 +1,2400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>zine machine — the home zine press</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Special+Elite&family=Playfair+Display:wght@700&family=Lora&family=Oswald:wght@600&family=Permanent+Marker&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --paper:#F6F5F1;
+    --paper2:#FFFFFF;
+    --ink:#1A1A1A;
+    --line:#DAD8D2;
+    --muted:#62655F;
+    --scrap:#3A57AD;
+    --hl:#3A57AD;
+    --hl-d:#2C4690;
+    --focus:#3A57AD;
+    --cobalt:#3A57AD;
+    --blockhead:#3A57AD;
+    --pop:#D1D001;
+    --sans:"Helvetica Neue",Helvetica,sans-serif;
+    --mono:"Manrope","Helvetica Neue",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:var(--mono);
+    color:var(--ink);
+    background:var(--paper);
+    min-height:100vh;
+    padding:0 0 60px;
+    font-size:14px;
+  }
+  ::selection{background:var(--hl);color:var(--paper)}
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='pg'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.55  0 0 0 0 0.53  0 0 0 0 0.48  0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23pg)'/%3E%3C/svg%3E");
+    background-size:200px 200px;opacity:1;
+  }
+  .masthead, .wrap{position:relative;z-index:1}
+
+  /* ---------- masthead ---------- */
+  .masthead{max-width:1180px;margin:0 auto;padding:48px 24px 8px}
+  .spec-meta{
+    display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;
+    font-size:10px;letter-spacing:.14em;text-transform:lowercase;color:var(--muted);
+    border-bottom:1.5px solid var(--ink);padding-bottom:9px;margin-bottom:40px;
+  }
+  .wordmark{
+    display:block;font-family:var(--sans);font-weight:700;text-transform:lowercase;
+    font-size:clamp(46px,11vw,128px);line-height:.9;letter-spacing:-.045em;
+    margin:0 0 6px;color:var(--ink);
+  }
+  .intro{display:flex;gap:52px;flex-wrap:wrap;align-items:flex-start;margin-top:38px}
+  .bluescrap{
+    width:100%;color:#EAF0F7;
+    background-color:var(--scrap);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='fb'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23fb)'/%3E%3C/svg%3E");
+    background-size:160px 160px;
+    padding:34px 36px;transform:none;border:none;
+  }
+  .bluescrap .lede{color:#EAF0F7}
+  .bluescrap .lede b{color:#FFFFFF}
+  .lede{font-size:13.5px;line-height:1.8;max-width:78ch}
+  .printrow{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:28px;
+    margin-top:22px;padding-top:20px;border-top:1px dashed rgba(234,240,247,.4);
+  }
+  .printcard svg{
+    width:96px;height:auto;display:block;margin-bottom:10px;
+    stroke:var(--pop);fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;opacity:1;
+  }
+  .printcard p{font-size:12px;line-height:1.65}
+  .bluescrap p + p{margin-top:14px}
+  .lede b{font-weight:700}
+
+  /* ---------- layout ---------- */
+  .wrap{max-width:1180px;margin:0 auto;padding:24px}
+  .section-label{
+    display:flex;align-items:baseline;gap:16px;
+    border-top:1px solid var(--ink);padding-top:10px;margin:56px 0 26px;
+  }
+  .section-label .meta{font-size:10px;letter-spacing:.14em;text-transform:lowercase;color:var(--muted)}
+  .section-label .num{color:var(--focus);font-weight:600}
+  .section-label .r{margin-left:auto;text-align:right}
+  .section-label .title{
+    font-family:var(--sans);font-weight:700;font-size:22px;letter-spacing:-.02em;
+    text-transform:lowercase;text-align:left;color:var(--ink);
+  }
+
+  /* ---------- format picker ---------- */
+  .formatbar{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  .fmt{position:relative;cursor:pointer}
+  .fmt input{position:absolute;opacity:0;inset:0;cursor:pointer}
+  .fmt span{
+    display:block;border:1px solid var(--ink);background:var(--paper2);
+    padding:10px 14px;font-size:12px;line-height:1.55;
+  }
+  .fmt b{display:block;font-family:var(--sans);font-weight:600;font-size:14px;text-transform:lowercase}
+  .fmt input:checked + span{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .fmt input:checked + span b{color:var(--paper)}
+  .fmt input:focus-visible + span{outline:2px solid var(--focus);outline-offset:2px}
+  .countbox{display:flex;gap:8px;align-items:center;font-size:12px}
+  .countbox label{letter-spacing:.14em;text-transform:lowercase;font-size:10px;color:var(--muted)}
+  .countbox select{
+    font-family:inherit;font-size:13px;font-weight:600;border:1px solid var(--ink);
+    background:var(--paper2);padding:8px 10px;cursor:pointer;color:var(--ink);
+  }
+  .countbox select:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+
+  /* ---------- panel entries ---------- */
+  .panels{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:34px 30px}
+  .card{border-top:1px solid var(--ink);padding:12px 0 6px;position:relative}
+  .card h3{
+    font-weight:600;font-size:10px;letter-spacing:.14em;text-transform:lowercase;
+    display:flex;justify-content:space-between;align-items:baseline;margin:0 0 12px;
+    color:var(--muted);
+  }
+  .card h3 .no{color:var(--focus);font-size:10px}
+  .thumb{
+    width:100%;height:auto;display:block;background:#E8E3CF;
+    outline:1px solid var(--ink);margin-bottom:12px;cursor:pointer;
+  }
+  .thumb.drag{outline:2px dashed var(--focus);outline-offset:-2px}
+  .field{margin-bottom:10px}
+  .field label{
+    display:block;font-size:10px;letter-spacing:.14em;text-transform:lowercase;
+    margin-bottom:4px;color:var(--muted);
+  }
+  .field input[type=text]{
+    width:100%;font-family:inherit;font-size:13px;line-height:1.6;
+    border:none;border-bottom:1px solid var(--ink);background:transparent;
+    padding:4px 2px 5px;color:var(--ink);border-radius:0;
+  }
+  .field textarea{
+    width:100%;font-family:inherit;font-size:13px;line-height:24px;
+    border:none;border-bottom:1px solid var(--ink);border-radius:0;
+    background:
+      repeating-linear-gradient(transparent 0 23px, var(--line) 23px 24px),
+      var(--paper2);
+    padding:0 6px;color:var(--ink);
+    resize:vertical;min-height:96px;
+  }
+  .field input[type=text]:focus, .field textarea:focus{
+    outline:none;border-bottom:2px solid var(--focus);
+  }
+  button:focus-visible,
+  .swatch input:focus-visible + span, .seg input:focus-visible + span{
+    outline:2px solid var(--focus);outline-offset:1px;
+  }
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+  .filebtn{
+    display:inline-block;cursor:pointer;font-family:inherit;color:var(--ink);
+    font-size:11px;letter-spacing:.08em;text-transform:lowercase;font-weight:600;
+    border:1px solid var(--ink);background:var(--paper2);padding:7px 10px;
+  }
+  .filebtn:hover{background:var(--ink);color:var(--paper)}
+  .clearimg{
+    font-family:inherit;font-size:11px;letter-spacing:.06em;cursor:pointer;
+    background:none;border:none;text-decoration:underline;color:var(--muted);padding:6px 2px;
+  }
+  .clearimg:hover{color:var(--focus)}
+  .imgchips{display:flex;gap:6px;flex-wrap:wrap}
+  .imgchips .chip{
+    padding:0;border:1px solid var(--ink);background:none;cursor:pointer;
+    line-height:0;position:relative;
+  }
+  .imgchips .chip img{width:30px;height:30px;object-fit:cover;display:block}
+  .imgchips .chip:hover::after{
+    content:"\00d7";position:absolute;inset:0;
+    background:rgba(42,36,28,.65);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;
+  }
+
+  .swatches{display:flex;gap:7px;flex-wrap:wrap}
+  .swatch{position:relative;cursor:pointer}
+  .swatch input{position:absolute;opacity:0;inset:0;cursor:pointer}
+  .swatch span{display:block;width:24px;height:24px;border:1px solid var(--ink)}
+  .swatch input:checked + span{box-shadow:0 0 0 2px var(--focus)}
+  .sw-auto span{background:linear-gradient(135deg,#FCFAF5 50%,#16140F 50%)}
+  .fontsel{
+    width:100%;font-family:inherit;font-size:12px;border:1px solid var(--line);
+    background:var(--paper2);padding:7px 8px;color:var(--ink);cursor:pointer;
+  }
+  .fontsel:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+  .grp{border-top:1px dashed var(--line);margin-top:8px}
+  .grp summary{
+    cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;
+    padding:9px 0;font-size:10px;letter-spacing:.14em;text-transform:lowercase;
+    color:var(--muted);font-weight:600;
+  }
+  .grp summary::-webkit-details-marker{display:none}
+  .grp summary::after{content:"+";font-size:13px;line-height:1}
+  .grp[open] summary::after{content:"\2212"}
+  .grp summary:hover{color:var(--ink)}
+  .grp summary:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+  .grp .field:last-child{margin-bottom:14px}
+  .inks .swatch span{width:22px;height:22px}
+  .sw-none span{
+    background:linear-gradient(to top left, transparent 46%, var(--ink) 46% 54%, transparent 54%), var(--paper2);
+  }
+
+  .seg{display:flex;border:1px solid var(--ink);overflow:hidden;width:max-content}
+  .seg label{position:relative;cursor:pointer}
+  .seg input{position:absolute;opacity:0;inset:0;cursor:pointer}
+  .seg span{
+    display:block;padding:5px 9px;font-size:11px;font-weight:600;background:var(--paper2);
+    border-right:1px solid var(--ink);
+  }
+  .seg label:last-child span{border-right:none}
+  .seg input:checked + span{background:var(--ink);color:var(--paper)}
+
+  /* ---------- press sheets ---------- */
+  .press{background:none}
+  #sheets{display:grid;gap:26px}
+  #sheets figure{margin:0}
+  #sheets canvas{width:100%;height:auto;display:block;outline:1px solid var(--ink);box-shadow:0 2px 8px rgba(30,45,60,.12)}
+  #sheets figcaption{
+    font-size:10px;letter-spacing:.14em;text-transform:lowercase;
+    margin-top:8px;color:var(--muted);
+  }
+  .press .controls{
+    display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-top:24px;
+    border-top:1px solid var(--line);padding-top:18px;
+  }
+  .bigbtn{
+    font-family:var(--sans);font-weight:600;font-size:14px;
+    text-transform:lowercase;cursor:pointer;
+    background:var(--hl);color:var(--paper);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='t'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.68  0 0 0 0 0.8  0 0 0 0 0.87  0 0 0 0.2 0'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23t)'/%3E%3C/svg%3E");
+    border:1px solid var(--ink);padding:12px 22px;
+    transition:background .12s ease;
+  }
+  .bigbtn:hover{background:var(--hl-d)}
+  .bigbtn:active{background:var(--hl-d)}
+  .bigbtn[disabled]{opacity:.55;cursor:wait}
+  .bigbtn.alt{background:var(--paper2);color:var(--ink)}
+  .bigbtn.alt:hover{background:var(--ink);color:var(--paper)}
+  .ghostbtn{
+    font-family:inherit;font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:lowercase;
+    background:var(--paper2);border:1px solid var(--ink);padding:11px 14px;cursor:pointer;color:var(--ink);
+  }
+  .ghostbtn:hover{background:var(--ink);color:var(--paper)}
+  .check{display:flex;gap:8px;align-items:center;font-size:12px;cursor:pointer}
+  .check input{width:15px;height:15px;accent-color:var(--focus);cursor:pointer}
+
+  /* ---------- folding guide ---------- */
+  .fold-steps{font-size:13px;line-height:1.8}
+  .fold-steps ol.steps{
+    list-style:none;padding:0;display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:30px 26px;
+  }
+  .fold-steps li{margin:0;display:flex;flex-direction:column;align-items:center;text-align:center}
+  .stepno{display:block;font-size:10px;letter-spacing:.14em;color:var(--focus);font-weight:600;margin-bottom:8px}
+  .steps svg{
+    width:110px;height:auto;display:block;margin:0 auto 10px;
+    stroke:var(--ink);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;opacity:.85;
+  }
+  .steps p{font-size:12px;line-height:1.65;max-width:24ch}
+  .stepnote{margin-top:24px;font-size:12px;max-width:62ch}
+  .fold-steps em{font-style:normal;background:rgba(36,56,200,.16);padding:0 .2em}
+
+  /* ---------- colophon ---------- */
+  .colophon{
+    max-width:1180px;margin:70px auto 0;padding:14px 24px 0;
+    border-top:1px solid var(--ink);
+    font-size:10px;letter-spacing:.1em;text-transform:lowercase;
+    color:var(--muted);
+    display:flex;flex-wrap:wrap;gap:6px 30px;
+  }
+  .apps{
+    margin-top:22px;font-size:11px;letter-spacing:.06em;
+    color:var(--muted);
+  }
+
+  /* ---------- flip-through reader ---------- */
+  .reader{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center}
+  .reader[hidden]{display:none}
+  .reader-scrim{position:absolute;inset:0;background:rgba(32,26,18,.86)}
+  .reader-ui{position:relative;display:flex;flex-direction:column;gap:16px;align-items:center;max-width:96vw}
+  .book{
+    position:relative;display:flex;perspective:2200px;
+    width:min(92vw, 96vh, 880px);
+    aspect-ratio:1294/1000;
+    filter:drop-shadow(0 18px 38px rgba(0,0,0,.5));
+  }
+  .page{position:relative;width:50%;height:100%;background:#FCFAF5;cursor:pointer}
+  .page canvas{width:100%;height:100%;display:block}
+  .page.empty{visibility:hidden}
+  .page.left::after, .page.right::after{
+    content:"";position:absolute;top:0;bottom:0;width:7%;pointer-events:none;
+  }
+  .page.left::after{right:0;background:linear-gradient(to left, rgba(0,0,0,.16), transparent 80%)}
+  .page.right::after{left:0;background:linear-gradient(to right, rgba(0,0,0,.16), transparent 80%)}
+  .flipper{
+    position:absolute;left:50%;top:0;width:50%;height:100%;
+    transform-origin:left center;transform-style:preserve-3d;
+    transition:transform .65s cubic-bezier(.3,.7,.3,1);
+    pointer-events:none;visibility:hidden;z-index:2;
+  }
+  .flipper.on{visibility:visible}
+  .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:#FCFAF5;overflow:hidden}
+  .face.back{transform:rotateY(180deg)}
+  .face canvas{width:100%;height:100%;display:block}
+  .reader-bar{
+    position:relative;display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;
+    color:var(--paper);font-size:13px;
+  }
+  .reader-bar .where{letter-spacing:.14em;text-transform:lowercase;font-size:11px;min-width:14ch;text-align:center}
+  .rbtn{
+    font-family:inherit;font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:lowercase;
+    background:var(--paper2);color:var(--ink);border:1px solid var(--ink);
+    padding:9px 14px;cursor:pointer;
+  }
+  .rbtn:hover{background:var(--hl);color:var(--paper)}
+  .rbtn:focus-visible{outline:2px solid var(--hl);outline-offset:2px}
+  .rbtn[disabled]{opacity:.4;cursor:default}
+  .rbtn[disabled]:hover{background:var(--paper2)}
+
+  @media (prefers-reduced-motion: reduce){
+    .bigbtn{transition:none}
+    .flipper{transition:none}
+  }
+  @media (max-width:560px){
+    .masthead{padding-top:30px}
+    .section-label .r{display:none}
+  }
+  #risoBtn{
+    background:var(--ink);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='t'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.68  0 0 0 0 0.8  0 0 0 0 0.87  0 0 0 0.2 0'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23t)'/%3E%3C/svg%3E");
+    color:var(--paper);border-color:var(--hl-d);
+  }
+  #risoBtn:hover{background:var(--hl-d);color:var(--paper)}
+
+  /* ===== invoice-style stacked blocks ===== */
+  .block{
+    background:var(--paper2);
+    border:1px solid var(--line);
+    padding:0;margin:0 0 22px;          /* gap between blocks */
+  }
+  .block > .section-label{
+    margin:0;border-top:none;
+    background:var(--blockhead);color:#EAF0F7;
+    display:flex;align-items:baseline;gap:16px;
+    padding:11px 18px;
+  }
+  .block > .section-label .meta{color:#C3D2EE}
+  .block > .section-label .num{color:#FFFFFF;font-weight:600}
+  .block > .section-label .title{color:#FFFFFF;text-transform:lowercase}
+  .block > .section-label .r{color:#C3D2EE}
+  .block-body{padding:20px 18px}
+  /* the intro scrap becomes the top block, full-bleed blue */
+
+  /* ===== collaboration bar ===== */
+  .collabbar{
+    position:sticky;top:0;z-index:50;
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    background:var(--blockhead);color:#EAF0F7;
+    padding:10px 16px;margin:0 0 4px;
+    font-family:var(--mono);font-size:12px;
+  }
+  .collabbar .cb-label{font-weight:600;letter-spacing:.02em}
+  .collabbar input{
+    font-family:var(--mono);font-size:12px;color:var(--ink);
+    background:#fff;border:1px solid rgba(255,255,255,.5);border-radius:2px;padding:6px 9px;width:150px;
+  }
+  .collabbar button{
+    font-family:var(--mono);font-size:12px;cursor:pointer;
+    background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.55);
+    border-radius:2px;padding:6px 12px;
+  }
+  .collabbar button:hover{background:#fff;color:var(--blockhead)}
+  .cb-status{margin-left:auto;display:flex;align-items:center;gap:8px}
+  .cb-dot{width:8px;height:8px;border-radius:50%;background:#8a8a8a}
+  .cb-dot.live{background:#7ED957}
+  .cb-dot.saving{background:#F4C24B}
+
+  .cb-who{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .cb-person{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;color:#EAF0F7;white-space:nowrap}
+  .cb-person .pdot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+  .card{position:relative}
+  .pcard-presence{position:absolute;top:6px;left:6px;display:flex;flex-direction:column;gap:4px;z-index:6;pointer-events:none}
+  .pbadge{font-family:var(--mono);font-size:10px;color:#141414;padding:2px 8px;border-radius:10px;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+  .cb-note{font-family:var(--mono);font-size:11px;color:var(--muted);margin:8px 2px 0}
+
+</style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="collabbar" id="collabBar">
+  <span class="cb-label">group zine</span>
+  <span class="cb-form" id="cbForm">
+    <input id="cbName" type="text" placeholder="your name" maxlength="24" autocomplete="off">
+    <input id="cbCode" type="text" placeholder="access code" maxlength="40" autocomplete="off">
+    <button id="cbJoin" type="button">join</button>
+  </span>
+  <span class="cb-joined" id="cbJoined" style="display:none">
+    <span id="cbGroupName" class="cb-label"></span>
+    <span class="cb-who" id="cbWho"></span>
+  </span>
+  <span class="cb-status">
+    <span class="cb-dot" id="cbDot"></span><span id="cbState">solo — not in a group</span>
+    <button id="cbLeave" type="button" style="display:none">leave</button>
+  </span>
+</div>
+
+
+<header class="masthead">
+  <p class="spec-meta"><span>zine_machine — zine press for field notes and more </span><span>georgia state university environmental media studio</span></p>
+  <h1 class="wordmark" data-word="zine machine">zine machine</h1>
+  <div class="intro">
+    <div class="bluescrap"><p class="lede">A zine press made for creative in-the-field storytelling. Design your panels with images and words — with optional riso inks, halftones, the works — then print on letter-sized paper. Choose the <b>one-sheet mini</b> (eight pages, one cut, no staples) or a <b>stapled booklet</b> (up to 24 half-letter pages, printed double-sided). The press sheets handle all the page-shuffling math for you.</p><div class="printrow">
+      <div class="printcard">
+        <svg viewBox="0 0 100 80" role="img" aria-label="A home printer feeding out a printed sheet">
+          <rect x="14" y="30" width="72" height="26" rx="3"/>
+          <path d="M30 30 V14 H70 V30"/>
+          <path d="M30 56 H70 V72 H30 Z"/>
+          <line x1="36" y1="62" x2="64" y2="62"/>
+          <line x1="36" y1="67" x2="58" y2="67"/>
+          <circle cx="78" cy="38" r="2.5"/>
+        </svg>
+        <p><b>print the pdf</b> — a ready-to-fold file for any home printer. Single-sided for the mini; double-sided, flipped on the short edge, for booklets.</p>
+      </div>
+      <div class="printcard">
+        <svg viewBox="0 0 100 80" role="img" aria-label="A flat sheet with crease lines folding into an open zine">
+          <rect x="6" y="24" width="36" height="28"/>
+          <line x1="24" y1="24" x2="24" y2="52" stroke-dasharray="3 4"/>
+          <line x1="6" y1="38" x2="42" y2="38" stroke-dasharray="3 4"/>
+          <path d="M48 38 H58"/>
+          <path d="M54 34 l5 4 -5 4"/>
+          <path d="M64 28 L80 35 L80 58 L64 51 Z"/>
+          <path d="M96 28 L80 35 L80 58 L96 51 Z"/>
+        </svg>
+        <p><b>fold &amp; bind</b> — fold and cut guides print right on the sheet, and step-by-step instructions ride along as the last page of the file.</p>
+      </div>
+      <div class="printcard">
+        <svg viewBox="0 0 100 80" role="img" aria-label="Three stacked separation layers, the front one screened with halftone dots">
+          <rect x="12" y="8" width="50" height="36"/>
+          <rect x="22" y="18" width="50" height="36"/>
+          <rect x="32" y="28" width="50" height="36"/>
+          <circle cx="42" cy="38" r="1.6"/>
+          <circle cx="52" cy="38" r="1.6"/>
+          <circle cx="62" cy="38" r="1.6"/>
+          <circle cx="47" cy="46" r="1.6"/>
+          <circle cx="57" cy="46" r="1.6"/>
+          <circle cx="42" cy="54" r="1.6"/>
+          <circle cx="52" cy="54" r="1.6"/>
+          <circle cx="62" cy="54" r="1.6"/>
+        </svg>
+        <p><b>optional: print with riso</b> — true color separations for risograph shops: one grayscale master per ink, plus a key page naming each layer.</p>
+      </div>
+    </div></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="block"><div class="section-label"><span class="meta num">1.0</span><span class="title">Select a format</span><span class="meta r">two ways to bind</span></div>
+  <div class="block-body">
+  <div class="formatbar">
+    <label class="fmt">
+      <input type="radio" name="format" value="mini" checked>
+      <span><b>One-sheet mini</b>8 pages · single-sided · fold + one cut, no staples</span>
+    </label>
+    <label class="fmt">
+      <input type="radio" name="format" value="booklet">
+      <span><b>Stapled booklet</b>half-letter · double-sided · fold + staple</span>
+    </label>
+    <span class="countbox" id="countbox" hidden>
+      <label for="pcount">Pages</label>
+      <select id="pcount">
+        <option value="8">8</option>
+        <option value="12">12</option>
+        <option value="16">16</option>
+        <option value="20">20</option>
+        <option value="24">24</option>
+      </select>
+    </span>
+    <span class="countbox">
+      <label for="psize">paper</label>
+      <select id="psize">
+        <option value="letter">letter 8.5×11</option>
+        <option value="legal">legal 8.5×14</option>
+        <option value="tabloid">tabloid 11×17</option>
+        <option value="large paper/newspaper sleeves">14×19</option>
+      </select>
+    </span>
+  </div>
+
+  </div></div>
+  <div class="block"><div class="section-label"><span class="meta num">2.0</span><span class="title">design your panels</span><span class="meta r">text · image · ink</span></div>
+  <div class="block-body">
+  <div class="panels" id="panels"></div>
+
+  </div></div>
+  <div class="block"><div class="section-label"><span class="meta num">3.0</span><span class="title">Check the press sheets</span><span class="meta r">300 dpi</span></div>
+  <div class="block-body">
+  <div class="press">
+    <div id="sheets"></div>
+    <div class="controls">
+      <button class="bigbtn" id="exportBtn">Print the PDF ↓</button>
+      <button class="bigbtn alt" id="previewBtn">Preview the zine ⟶</button>
+      <button class="ghostbtn" id="risoBtn">Print with riso ↓</button>
+      <button class="ghostbtn" id="exampleBtn">Load an example</button>
+      <button class="ghostbtn" id="saveBtn">Save project</button>
+      <button class="ghostbtn" id="openBtn">Open project</button>
+      <input type="file" id="openFile" accept="application/json,.json" hidden>
+      <label class="check"><input type="checkbox" id="guidesChk" checked> Print fold &amp; cut guides</label>
+      <label class="check"><input type="checkbox" id="howtoChk" checked> Include instructions page</label>
+    </div>
+  </div>
+
+  </div></div>
+  <div class="block"><div class="section-label"><span class="meta num">4.0</span><span class="title" id="bindText">Fold &amp; cut</span><span class="meta r">no glue required</span></div>
+  <div class="block-body">
+  <div class="fold-steps" id="steps-mini">
+    <ol class="steps">
+      <li><span class="stepno">step 1</span>
+        <svg viewBox="0 0 120 90" role="img" aria-label="A printer feeding out a sheet">
+          <rect x="24" y="32" width="72" height="24" rx="3"/>
+          <path d="M40 32 V18 H80 V32"/>
+          <path d="M40 56 H80 V74 H40 Z"/>
+          <line x1="46" y1="63" x2="74" y2="63"/>
+          <circle cx="88" cy="40" r="2.5"/>
+        </svg>
+        <p><b>Print</b> the PDF single-sided, landscape, at 100% scale — no &ldquo;fit to page&rdquo; shrinking.</p>
+      </li>
+      <li><span class="stepno">step 2</span>
+        <svg viewBox="0 0 120 90" role="img" aria-label="A landscape sheet folding in half along its long edge">
+          <rect x="18" y="22" width="76" height="50"/>
+          <line x1="18" y1="47" x2="94" y2="47" stroke-dasharray="4 5"/>
+          <path d="M102 64 C 111 52, 111 40, 102 30"/>
+          <path d="M99 36 l3 -7 7 3"/>
+        </svg>
+        <p><b>Fold in half the long way</b> (top edge to bottom edge). Crease hard, then unfold.</p>
+      </li>
+      <li><span class="stepno">step 3</span>
+        <svg viewBox="0 0 120 90" role="img" aria-label="The sheet folding in half along its short edge">
+          <rect x="30" y="22" width="60" height="52"/>
+          <line x1="60" y1="22" x2="60" y2="74" stroke-dasharray="4 5"/>
+          <path d="M86 14 C 72 4, 48 4, 34 14"/>
+          <path d="M40 8 l-7 5 6 6"/>
+        </svg>
+        <p><b>Fold in half the short way</b> (left edge to right edge) and keep it folded.</p>
+      </li>
+      <li><span class="stepno">step 4</span>
+        <svg viewBox="0 0 120 90" role="img" aria-label="Scissors cutting from the folded edge to the center crease">
+          <rect x="30" y="24" width="60" height="46"/>
+          <line x1="30" y1="47" x2="60" y2="47" stroke="#FF48B0" stroke-width="2.6" stroke-dasharray="6 5"/>
+          <line x1="14" y1="40" x2="30" y2="50"/>
+          <line x1="14" y1="54" x2="30" y2="44"/>
+          <circle cx="12" cy="38" r="3"/>
+          <circle cx="12" cy="56" r="3"/>
+        </svg>
+        <p><b>Cut along the pink ✂ line</b> — from the folded edge to the crease. Unfold.</p>
+      </li>
+      <li><span class="stepno">step 5</span>
+        <svg viewBox="0 0 120 90" role="img" aria-label="The sheet pushed inward from both sides collapsing into an open booklet">
+          <path d="M38 30 L60 40 L60 66 L38 56 Z"/>
+          <path d="M82 30 L60 40 L60 66 L82 56 Z"/>
+          <path d="M14 46 H28"/>
+          <path d="M24 42 l5 4 -5 4"/>
+          <path d="M106 46 H92"/>
+          <path d="M96 42 l-5 4 5 4"/>
+        </svg>
+        <p><b>Refold the long way</b>, push both ends toward the middle — the slit opens into a diamond — then collapse it flat with your cover in front.</p>
+      </li>
+    </ol>
+  </div>
+  <div class="fold-steps" id="steps-booklet" hidden>
+    <ol class="steps">
+      <li><span class="stepno">step 1</span>
+        <svg viewBox="0 0 120 90" role="img" aria-label="A sheet flipping around its short, vertical edge">
+          <rect x="34" y="22" width="52" height="50"/>
+          <line x1="60" y1="12" x2="60" y2="82" stroke-dasharray="3 5"/>
+          <path d="M90 28 C 104 36, 104 56, 90 64"/>
+          <path d="M88 58 l3 7 7 -4"/>
+          <path d="M30 64 C 16 56, 16 36, 30 28"/>
+          <path d="M32 34 l-3 -7 -7 4"/>
+        </svg>
+        <p><b>Print double-sided</b>, landscape, at 100% scale. Duplex setting: <em>flip on short edge</em>.</p>
+      </li>
+      <li><span class="stepno">step 2</span>
+        <svg viewBox="0 0 120 90" role="img" aria-label="Three sheets stacked in order, sheet one in front">
+          <rect x="22" y="12" width="56" height="42"/>
+          <rect x="32" y="22" width="56" height="42"/>
+          <rect x="42" y="32" width="56" height="42"/>
+          <path d="M66 46 l5 -4 V 62"/>
+        </svg>
+        <p><b>Keep the sheets in printed order</b> — sheet 1 holds the covers and goes on the outside.</p>
+      </li>
+      <li><span class="stepno">step 3</span>
+        <svg viewBox="0 0 120 90" role="img" aria-label="The stack folding in half along the dashed center line">
+          <rect x="24" y="26" width="66" height="46"/>
+          <rect x="30" y="20" width="66" height="46"/>
+          <line x1="63" y1="20" x2="63" y2="72" stroke-dasharray="4 5"/>
+          <path d="M92 12 C 80 4, 62 4, 50 12"/>
+          <path d="M56 6 l-7 5 6 6"/>
+        </svg>
+        <p><b>Stack the sheets</b> and fold the whole stack in half along the dashed center line.</p>
+      </li>
+      <li><span class="stepno">step 4</span>
+        <svg viewBox="0 0 120 90" role="img" aria-label="A folded booklet with two staples on the spine">
+          <rect x="40" y="16" width="44" height="58"/>
+          <line x1="40" y1="16" x2="40" y2="74" stroke-width="2.4"/>
+          <rect x="36" y="28" width="8" height="11"/>
+          <rect x="36" y="51" width="8" height="11"/>
+        </svg>
+        <p><b>Staple twice along the fold</b> — long-arm stapler, or open the stack flat over a towel and press one through.</p>
+      </li>
+      <li><span class="stepno">step 5</span>
+        <svg viewBox="0 0 120 90" role="img" aria-label="A blade trimming the open edge of the booklet flush">
+          <rect x="28" y="18" width="46" height="56"/>
+          <line x1="28" y1="18" x2="28" y2="74" stroke-width="2.4"/>
+          <line x1="84" y1="12" x2="84" y2="80"/>
+          <path d="M92 39 l10 7 -10 7 Z"/>
+        </svg>
+        <p><b>Crease hard</b> with the back of a spoon; trim the open edge flush with a ruler and blade if you like.</p>
+      </li>
+    </ol>
+    <p class="stepnote">Each page prints next to its faraway partner — page 1 sits beside the last page. <em>The fold sorts them out.</em></p>
+  </div>
+  </div></div>
+</main>
+
+<footer class="colophon">
+  <span>zine_machine is a production of the environmental media studio at georgia state university</span>
+</footer>
+
+<div class="reader" id="reader" hidden role="dialog" aria-modal="true" aria-label="Zine preview">
+  <div class="reader-scrim" id="readerScrim"></div>
+  <div class="reader-ui">
+    <div class="book" id="book">
+      <div class="page left" id="pageLeft" title="Previous spread"><canvas width="520" height="804"></canvas></div>
+      <div class="page right" id="pageRight" title="Next spread"><canvas width="520" height="804"></canvas></div>
+      <div class="flipper" id="flipper">
+        <div class="face front"><canvas width="520" height="804"></canvas></div>
+        <div class="face back"><canvas width="520" height="804"></canvas></div>
+      </div>
+    </div>
+    <div class="reader-bar">
+      <button class="rbtn" id="readerPrev">‹ Back</button>
+      <span class="where" id="readerWhere">Front cover</span>
+      <button class="rbtn" id="readerNext">Turn ›</button>
+      <button class="rbtn" id="readerClose">✕ Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ----------------------------- constants ----------------------------- */
+  const MAXP = 24;
+  const SHEET_W = 3300, SHEET_H = 2550;             // letter landscape @300dpi
+  const MINI_PW = 825, MINI_PH = 1275;              // quarter panel @300dpi
+  const BOOK_PW = 1650, BOOK_PH = 2550;             // half-letter page @300dpi
+  const PAPERS = {
+    letter: {w:11, h:8.5},
+    legal:  {w:14, h:8.5},
+    tabloid:{w:17, h:11},
+    big:    {w:19, h:14}
+  };
+  let paperKey = "letter";
+  function paperPx(){
+    const P = PAPERS[paperKey];
+    return {W: Math.round(P.w*300), H: Math.round(P.h*300)};
+  }
+  function panelPx(){
+    const pp = paperPx();
+    return format === "booklet" ? {pw:pp.W/2, ph:pp.H} : {pw:pp.W/4, ph:pp.H/2};
+  }
+  const TOP_ROW    = [4,3,2,1];                     // mini imposition (0-based page idx)
+  const BOTTOM_ROW = [5,6,7,0];
+
+  function hexLum(hex){
+    const n = parseInt(hex.slice(1), 16);
+    const lin = v => { v /= 255; return v <= .04045 ? v/12.92 : Math.pow((v + .055)/1.055, 2.4); };
+    return .2126*lin(n>>16 & 255) + .7152*lin(n>>8 & 255) + .0722*lin(n & 255);
+  }
+  // page color -> legible defaults (pink keeps its classic black-ink riso look)
+  function bgPalette(key){
+    if(key === "paper" || !key) return {bg:"#FCFAF5", fg:"#16140F", accent:"#FF48B0"};
+    const k = key === "ink" ? "black" : key;
+    const bgHex = INKS[k] || "#FCFAF5";
+    const fg = (k === "pink" || hexLum(bgHex) > 0.45) ? "#16140F" : "#FCFAF5";
+    return {bg:bgHex, fg:fg, accent: k === "pink" ? "#FCFAF5" : "#FF48B0"};
+  }
+  const TYPEFACES = {
+    press: {label:"Press — Archivo Black / Space Mono",
+            headWeight:"", head:'"Archivo Black","Arial Black",sans-serif',
+            body:'"Space Mono","Courier New",monospace'},
+    helv:  {label:"Helvetica — bold / regular",
+            headWeight:"700 ", head:'"Helvetica Neue",Helvetica,sans-serif',
+            body:'"Helvetica Neue",Helvetica,sans-serif'},
+    typer: {label:"Typewriter — Special Elite",
+            headWeight:"", head:'"Special Elite","Courier New",monospace',
+            body:'"Special Elite","Courier New",monospace'},
+    serif: {label:"Serif — Playfair / Lora",
+            headWeight:"700 ", head:'"Playfair Display",Georgia,serif',
+            body:'"Lora",Georgia,serif'},
+    gothic:{label:"Gothic — Oswald / IBM Plex Mono",
+            headWeight:"600 ", head:'"Oswald","Arial Narrow",sans-serif',
+            body:'"IBM Plex Mono","Courier New",monospace'},
+    marker:{label:"Marker — Permanent Marker / Space Mono",
+            headWeight:"", head:'"Permanent Marker",cursive',
+            body:'"Space Mono","Courier New",monospace'}
+  };
+  function ensureFonts(){
+    const loads = [];
+    for(const k in TYPEFACES){
+      const tf = TYPEFACES[k];
+      loads.push(document.fonts.load(tf.headWeight + "32px " + tf.head));
+      loads.push(document.fonts.load("16px " + tf.body));
+    }
+    return Promise.all(loads).catch(() => {});
+  }
+  const BODY_SIZES = {s:30, m:38, l:48};
+  const INKS = {
+    black:   "#000000",
+    gray:    "#88898A",
+    gold:    "#AC936E",
+    scarlet: "#F65058",
+    pink:    "#FF48B0",
+    yellow:  "#FFE800",
+    mint:    "#82D8D5",
+    corn:    "#62A8E5",
+    medblue: "#3255A4"
+  };
+  const INK_LABELS = {
+    black:"Black", gray:"Light gray", gold:"Metallic gold", scarlet:"Scarlet",
+    pink:"Fluorescent pink", yellow:"Yellow", mint:"Mint",
+    corn:"Cornflower", medblue:"Medium blue"
+  };
+  // older saved projects used the previous three-ink names
+  const LEGACY_INKS = {blue:"corn", orange:"scarlet", green:"mint"};
+  const TONES = {
+    full:  {b:1.02, c:1.12},
+    dark:  {b:1.45, c:1.35},
+    light: {b:1.05, c:0.85}
+  };
+  const HT_CELLS = {fine:5, med:7, coarse:11};      // px at 300dpi
+
+  /* ----------------------------- state ----------------------------- */
+  const master = Array.from({length:MAXP}, () => ({
+    heading:"", body:"", imgs:[], grid:"auto", imgpos:"top", bg:"paper", tex:"off", size:"m",
+    font:"press", fg:"auto", ink:"none", ink2:"none", ht:"off"
+  }));
+  let format = "mini";
+  let pageCount = 8;
+
+  function pageLabel(i, n){
+    if(i === 0) return "Front cover";
+    if(i === n-1) return "Back cover";
+    return "Page " + (i+1);
+  }
+
+  /* ------------------------ canvas helpers ------------------------- */
+  function wrapText(ctx, text, maxW){
+    const out = [];
+    for(const rawLine of String(text).split("\n")){
+      const words = rawLine.split(/\s+/).filter(Boolean);
+      if(!words.length){ out.push(""); continue; }
+      let line = words[0];
+      for(let k=1;k<words.length;k++){
+        const test = line + " " + words[k];
+        if(ctx.measureText(test).width <= maxW) line = test;
+        else { out.push(line); line = words[k]; }
+      }
+      out.push(line);
+    }
+    return out;
+  }
+
+  function drawCover(ctx, img, x, y, w, h){
+    const s = Math.max(w/img.naturalWidth, h/img.naturalHeight);
+    const sw = w/s, sh = h/s;
+    const sx = (img.naturalWidth - sw)/2, sy = (img.naturalHeight - sh)/2;
+    ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+  }
+
+  /* ------------------------ riso print engine ----------------------- */
+  function makeGray(img, w, h, tone){
+    const t = document.createElement("canvas");
+    t.width = w; t.height = h;
+    const tc = t.getContext("2d");
+    const {b, c} = TONES[tone] || TONES.full;
+    if("filter" in tc){
+      tc.filter = "grayscale(1) brightness(" + b + ") contrast(" + c + ")";
+      drawCover(tc, img, 0, 0, w, h);
+      tc.filter = "none";
+    } else {
+      drawCover(tc, img, 0, 0, w, h);
+      const d = tc.getImageData(0, 0, w, h);
+      const px = d.data;
+      for(let k = 0; k < px.length; k += 4){
+        let g = 0.299*px[k] + 0.587*px[k+1] + 0.114*px[k+2];
+        g = (g*b - 127.5)*c + 127.5;
+        g = g < 0 ? 0 : g > 255 ? 255 : g;
+        px[k] = px[k+1] = px[k+2] = g;
+      }
+      tc.putImageData(d, 0, 0);
+    }
+    return t;
+  }
+
+  function halftoneFromGray(gray, inkHex, angleDeg, cell){
+    const w = gray.width, h = gray.height;
+    const out = document.createElement("canvas");
+    out.width = w; out.height = h;
+    const o = out.getContext("2d");
+    o.fillStyle = "#FFFFFF";
+    o.fillRect(0, 0, w, h);
+    const data = gray.getContext("2d").getImageData(0, 0, w, h).data;
+    const a = angleDeg*Math.PI/180, ca = Math.cos(a), sa = Math.sin(a);
+    const cx = w/2, cy = h/2;
+    const half = Math.hypot(w, h)/2 + cell;
+    const maxR = cell*0.62;
+    o.fillStyle = inkHex;
+    o.beginPath();
+    for(let v = -half; v <= half; v += cell){
+      for(let u = -half; u <= half; u += cell){
+        const x = cx + u*ca - v*sa;
+        const y = cy + u*sa + v*ca;
+        if(x < -cell || x > w+cell || y < -cell || y > h+cell) continue;
+        const sx = Math.min(w-1, Math.max(0, Math.round(x)));
+        const sy = Math.min(h-1, Math.max(0, Math.round(y)));
+        const lum = data[(sy*w + sx)*4];
+        const r = maxR * Math.sqrt(1 - lum/255);
+        if(r < 0.3) continue;
+        o.moveTo(x + r, y);
+        o.arc(x, y, r, 0, Math.PI*2);
+      }
+    }
+    o.fill();
+    return out;
+  }
+
+  function inkLayer(img, w, h, inkHex, tone, htCell, angle){
+    const gray = makeGray(img, w, h, tone);
+    if(htCell) return halftoneFromGray(gray, inkHex, angle, htCell);
+    const g = gray.getContext("2d");
+    g.globalCompositeOperation = "screen";
+    g.fillStyle = inkHex;
+    g.fillRect(0, 0, w, h);
+    g.globalCompositeOperation = "source-over";
+    return gray;
+  }
+
+  // dpiScale: rendered px per 300dpi px, keeps halftone dots a constant printed size
+  function drawImageInked(ctx, img, x, y, w, h, p, dpiScale){
+    const W = Math.max(1, Math.round(w)), H = Math.max(1, Math.round(h));
+    const ink1 = p.ink, ink2 = p.ink2;
+    const htCell = p.ht !== "off" ? Math.max(2.5, HT_CELLS[p.ht]*dpiScale) : 0;
+
+    if(ink1 === "none" && !htCell){
+      drawCover(ctx, img, x, y, w, h);
+      return;
+    }
+    if(ink1 === "none" && htCell){
+      ctx.drawImage(inkLayer(img, W, H, INKS.black, "full", htCell, 45), x, y, w, h);
+      return;
+    }
+    if(ink2 === "none" || !INKS[ink2]){
+      ctx.drawImage(inkLayer(img, W, H, INKS[ink1], "full", htCell, 45), x, y, w, h);
+      return;
+    }
+    // two-color: ink 2 takes midtones+highlights, ink 1 takes shadows,
+    // multiplied with a slight misregistration like a real second drum pass
+    const base = document.createElement("canvas");
+    base.width = W; base.height = H;
+    const b = base.getContext("2d");
+    b.fillStyle = "#FFFFFF";
+    b.fillRect(0, 0, W, H);
+    b.drawImage(inkLayer(img, W, H, INKS[ink2], "light", htCell, 75), 0, 0);
+    b.globalCompositeOperation = "multiply";
+    const dx = Math.max(2, Math.round(W*0.009));
+    const dy = -Math.max(2, Math.round(H*0.005));
+    b.drawImage(inkLayer(img, W, H, INKS[ink1], "dark", htCell, 15), dx, dy);
+    b.globalCompositeOperation = "source-over";
+    ctx.drawImage(base, x, y, w, h);
+  }
+
+  // predefined image grids: 1 single, 2 stacked, 3 hero + pair, 4 two-by-two
+  function gridCells(layout, w, h, g){
+    if(layout <= 1) return [{x:0, y:0, w:w, h:h}];
+    if(layout === 2){
+      const rh = (h - g)/2;
+      return [{x:0,y:0,w:w,h:rh},{x:0,y:rh+g,w:w,h:rh}];
+    }
+    if(layout === 3){
+      const heroH = Math.round((h - g)*0.55);
+      const botH = h - g - heroH;
+      const cw = (w - g)/2;
+      return [{x:0,y:0,w:w,h:heroH},
+              {x:0,y:heroH+g,w:cw,h:botH},
+              {x:cw+g,y:heroH+g,w:cw,h:botH}];
+    }
+    const cw = (w - g)/2, rh = (h - g)/2;
+    return [{x:0,y:0,w:cw,h:rh},{x:cw+g,y:0,w:cw,h:rh},
+            {x:0,y:rh+g,w:cw,h:rh},{x:cw+g,y:rh+g,w:cw,h:rh}];
+  }
+
+  function drawImageGrid(ctx, imgs, x, y, w, h, p, dpiScale, f){
+    const layout = p.grid === "auto" ? Math.min(imgs.length, 4) : parseInt(p.grid, 10);
+    const g = layout > 1 ? Math.max(2, Math.round(8*f)) : 0;
+    gridCells(layout, w, h, g).forEach((r, i) => {
+      if(imgs[i]) drawImageInked(ctx, imgs[i], x + r.x, y + r.y, r.w, r.h, p, dpiScale);
+    });
+  }
+
+  // riso flood texture: roller streaks + paper pinholes + sparse ink specks.
+  // Seeded per page so the grain doesn't shimmer between re-renders, and
+  // positions are normalized so preview and PDF show the same texture.
+  function drawFloodTexture(ctx, w, h, seed, dpi){
+    let s = (seed*2654435761) >>> 0 || 1;
+    const rnd = () => { s = (s*1664525 + 1013904223) >>> 0; return s/4294967296; };
+    ctx.save();
+    const bands = 6 + Math.floor(rnd()*3);
+    for(let k=0; k<bands; k++){
+      ctx.fillStyle = k % 3 === 2 ? "rgba(0,0,0,.022)" : "rgba(252,250,245,.04)";
+      const bh = (0.02 + rnd()*0.06)*h;
+      ctx.fillRect(0, rnd()*(h-bh), w, bh);
+    }
+    const dots = Math.round((w*h)/900);
+    ctx.fillStyle = "rgba(252,250,245,.16)";
+    ctx.beginPath();
+    for(let k=0; k<dots; k++){
+      const x = rnd()*w, y = rnd()*h;
+      const r = Math.max(.5, (0.7 + rnd()*1.8)*dpi);
+      ctx.moveTo(x+r, y);
+      ctx.arc(x, y, r, 0, Math.PI*2);
+    }
+    ctx.fill();
+    ctx.fillStyle = "rgba(0,0,0,.05)";
+    ctx.beginPath();
+    for(let k=0; k<Math.round(dots/8); k++){
+      const x = rnd()*w, y = rnd()*h;
+      const r = Math.max(.5, (0.9 + rnd()*2)*dpi);
+      ctx.moveTo(x+r, y);
+      ctx.arc(x, y, r, 0, Math.PI*2);
+    }
+    ctx.fill();
+    ctx.restore();
+  }
+
+  /* ------------------------- panel rendering ------------------------ */
+  // pw/ph: output px. Layout scales from the 825-wide reference panel.
+  function renderPanel(p, pageNum, totalPages, pw, ph, dpiScale){
+    const c = document.createElement("canvas");
+    c.width = Math.round(pw); c.height = Math.round(ph);
+    const ctx = c.getContext("2d");
+    const f = pw/825;
+    const col = bgPalette(p.bg);
+    const tf = TYPEFACES[p.font] || TYPEFACES.press;
+    const fg = (p.fg && p.fg !== "auto")
+      ? (p.fg === "paper" ? "#FCFAF5" : (INKS[p.fg] || col.fg))
+      : col.fg;
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0,0,c.width,c.height);
+    if(p.tex === "on" && p.bg !== "paper"){
+      drawFloodTexture(ctx, c.width, c.height, pageNum, dpiScale);
+    }
+
+    const pad = 72*f;
+    const hasText = (p.heading.trim() || p.body.trim());
+    let textTop = pad;
+
+    const imgs = (p.imgs || []).filter(im => im.naturalWidth);
+    const pos = p.imgpos || "top";
+    let textMaxY = c.height - pad;
+    if(imgs.length){
+      const barH = Math.max(2, 10*f);
+      const barColor = (p.ink !== "none" && INKS[p.ink]) ? INKS[p.ink] : col.accent;
+      if(!hasText || pos === "behind"){
+        drawImageGrid(ctx, imgs, 0, 0, c.width, c.height, p, dpiScale, f);
+      } else if(pos === "bottom"){
+        const ih = Math.round(c.height*0.52);
+        const by = c.height - ih;
+        drawImageGrid(ctx, imgs, 0, by, c.width, ih, p, dpiScale, f);
+        ctx.fillStyle = barColor;
+        ctx.fillRect(0, by - barH, c.width, barH);
+        textMaxY = by - barH - 24*f;
+      } else {
+        const ih = Math.round(c.height*0.52);
+        drawImageGrid(ctx, imgs, 0, 0, c.width, ih, p, dpiScale, f);
+        ctx.fillStyle = barColor;
+        ctx.fillRect(0, ih, c.width, barH);
+        textTop = ih + barH + 48*f;
+      }
+    }
+
+    if(hasText){
+      const maxW = c.width - pad*2;
+      let y = textTop;
+      if(p.heading.trim()){
+        const hs = (p.size==="l" ? 86 : p.size==="s" ? 58 : 72)*f;
+        ctx.font = tf.headWeight + hs + "px " + tf.head;
+        ctx.fillStyle = fg;
+        ctx.textBaseline = "top";
+        for(const line of wrapText(ctx, p.heading.toUpperCase(), maxW)){
+          if(y > textMaxY) break;
+          ctx.fillText(line, pad, y);
+          y += hs*1.04;
+        }
+        y += 26*f;
+      }
+      if(p.body.trim()){
+        const bs = BODY_SIZES[p.size]*f;
+        ctx.font = bs + "px " + tf.body;
+        ctx.fillStyle = fg;
+        ctx.textBaseline = "top";
+        for(const line of wrapText(ctx, p.body, maxW)){
+          if(y > textMaxY) break;
+          ctx.fillText(line, pad, y);
+          y += bs*1.5;
+        }
+      }
+    }
+
+    if(pageNum >= 2 && pageNum <= totalPages-1){
+      ctx.font = (26*f) + "px " + tf.body;
+      ctx.fillStyle = fg;
+      ctx.globalAlpha = .75;
+      ctx.textBaseline = "alphabetic";
+      const n = String(pageNum);
+      ctx.fillText(n, (c.width - ctx.measureText(n).width)/2, c.height - 34*f);
+      ctx.globalAlpha = 1;
+    }
+    return c;
+  }
+
+  /* --------------------- riso separation rendering ------------------ */
+  // Which physical ink each part of a panel prints with (null = bare paper).
+  function resolveInkPlan(p, pageNum, totalPages){
+    const hasTxt = !!(p.heading.trim() || p.body.trim());
+    const hasNum = pageNum >= 2 && pageNum <= totalPages - 1;
+    const imgsOn = (p.imgs || []).some(im => im.naturalWidth);
+    const bgInk = p.bg === "paper" ? null : (p.bg === "ink" ? "black" : p.bg);
+    const col = bgPalette(p.bg);
+    let fgInk = p.fg === "auto" ? (col.fg === "#FCFAF5" ? null : "black")
+              : (p.fg === "paper" ? null : (INKS[p.fg] ? p.fg : "black"));
+    if(!hasTxt && !hasNum) fgInk = undefined;   // nothing to print, nothing to knock out
+    const twoColor = imgsOn && p.ink !== "none" && p.ink2 !== "none" && !!INKS[p.ink2];
+    const ink1 = imgsOn ? (p.ink === "none" ? "black" : p.ink) : null;
+    const ink2 = twoColor ? p.ink2 : null;
+    let barInk = null;
+    if(imgsOn && hasTxt && (p.imgpos || "top") !== "behind"){
+      barInk = p.ink !== "none" ? p.ink : (col.accent === "#FCFAF5" ? null : "pink");
+    }
+    return {bgInk, fgInk, ink1, ink2, barInk, twoColor};
+  }
+
+  // One grayscale master for ink layer K: black = full coverage of that ink.
+  function renderPanelLayer(p, pageNum, totalPages, pw, ph, dpiScale, K){
+    const c = document.createElement("canvas");
+    c.width = Math.round(pw); c.height = Math.round(ph);
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, c.width, c.height);
+    const f = pw/825;
+    const plan = resolveInkPlan(p, pageNum, totalPages);
+    const tf = TYPEFACES[p.font] || TYPEFACES.press;
+    const pad = 72*f;
+    const hasText = !!(p.heading.trim() || p.body.trim());
+    const imgs = (p.imgs || []).filter(im => im.naturalWidth);
+    const pos = p.imgpos || "top";
+    const barH = Math.max(2, 10*f);
+
+    // geometry mirrors renderPanel exactly
+    let textTop = pad, textMaxY = c.height - pad;
+    let imgRect = null, barY = null;
+    if(imgs.length){
+      if(!hasText || pos === "behind"){
+        imgRect = {x:0, y:0, w:c.width, h:c.height};
+      } else if(pos === "bottom"){
+        const ih = Math.round(c.height*0.52);
+        imgRect = {x:0, y:c.height - ih, w:c.width, h:ih};
+        barY = c.height - ih - barH;
+        textMaxY = barY - 24*f;
+      } else {
+        const ih = Math.round(c.height*0.52);
+        imgRect = {x:0, y:0, w:c.width, h:ih};
+        barY = ih;
+        textTop = ih + barH + 48*f;
+      }
+    }
+    const layout = imgRect ? (p.grid === "auto" ? Math.min(imgs.length, 4) : parseInt(p.grid, 10)) : 0;
+    const g = layout > 1 ? Math.max(2, Math.round(8*f)) : 0;
+    const cells = imgRect ? gridCells(layout, imgRect.w, imgRect.h, g) : [];
+
+    const drawText = (style) => {
+      ctx.fillStyle = style;
+      let y = textTop;
+      if(p.heading.trim()){
+        const hs = (p.size==="l" ? 86 : p.size==="s" ? 58 : 72)*f;
+        ctx.font = tf.headWeight + hs + "px " + tf.head;
+        ctx.textBaseline = "top";
+        for(const line of wrapText(ctx, p.heading.toUpperCase(), c.width - pad*2)){
+          if(y > textMaxY) break;
+          ctx.fillText(line, pad, y);
+          y += hs*1.04;
+        }
+        y += 26*f;
+      }
+      if(p.body.trim()){
+        const bs = BODY_SIZES[p.size]*f;
+        ctx.font = bs + "px " + tf.body;
+        ctx.textBaseline = "top";
+        for(const line of wrapText(ctx, p.body, c.width - pad*2)){
+          if(y > textMaxY) break;
+          ctx.fillText(line, pad, y);
+          y += bs*1.5;
+        }
+      }
+      if(pageNum >= 2 && pageNum <= totalPages - 1){
+        ctx.font = (26*f) + "px " + tf.body;
+        ctx.textBaseline = "alphabetic";
+        const n = String(pageNum);
+        ctx.fillText(n, (c.width - ctx.measureText(n).width)/2, c.height - 34*f);
+      }
+    };
+
+    // flood layer, with knockouts where the preview shows paper
+    if(plan.bgInk === K){
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.fillStyle = "#FFFFFF";
+      cells.forEach((r, i) => {
+        if(imgs[i]) ctx.fillRect(imgRect.x + r.x, imgRect.y + r.y, r.w, r.h);
+      });
+      if(barY !== null && plan.barInk === null) ctx.fillRect(0, barY, c.width, barH);
+      if(plan.fgInk === null) drawText("#FFFFFF");   // paper text knocks out of the flood
+    }
+    if(plan.fgInk === K) drawText("#000000");
+    if(barY !== null && plan.barInk === K){
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, barY, c.width, barH);
+    }
+    // image passes — no baked misregistration; the press supplies its own
+    const drawPass = (tone, angle) => {
+      const htCell = p.ht !== "off" ? Math.max(2.5, HT_CELLS[p.ht]*dpiScale) : 0;
+      cells.forEach((r, i) => {
+        if(!imgs[i]) return;
+        const w = Math.max(1, Math.round(r.w)), h = Math.max(1, Math.round(r.h));
+        const gray = makeGray(imgs[i], w, h, tone);
+        const layer = htCell ? halftoneFromGray(gray, "#000000", angle, htCell) : gray;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(imgRect.x + r.x, imgRect.y + r.y, r.w, r.h);
+        ctx.clip();
+        ctx.globalCompositeOperation = "multiply";
+        ctx.drawImage(layer, imgRect.x + r.x, imgRect.y + r.y, r.w, r.h);
+        ctx.restore();
+      });
+    };
+    if(plan.ink1 === K) drawPass(plan.twoColor ? "dark" : "full", plan.twoColor ? 15 : 45);
+    if(plan.ink2 === K) drawPass("light", 75);
+    return c;
+  }
+
+  function collectInkLayers(){
+    const used = {};
+    for(let i = 0; i < pageCount; i++){
+      const plan = resolveInkPlan(master[i], i+1, pageCount);
+      [plan.bgInk, plan.fgInk, plan.ink1, plan.ink2, plan.barInk].forEach(k => {
+        if(k && INKS[k]) used[k] = true;
+      });
+    }
+    return Object.keys(INKS).filter(k => used[k]);
+  }
+
+  function risoKeyPage(layers, sheetsPerLayer){
+    const pp = paperPx();
+    const c = document.createElement("canvas");
+    c.width = pp.W; c.height = pp.H;
+    const ctx = c.getContext("2d");
+    const u = pp.W/3300;
+    ctx.fillStyle = "#FCFAF5"; ctx.fillRect(0, 0, pp.W, pp.H);
+    ctx.fillStyle = "#16140F";
+    ctx.textBaseline = "top";
+    ctx.font = "700 " + Math.round(130*u) + 'px "Helvetica Neue",Helvetica,sans-serif';
+    ctx.fillText("riso separations", 180*u, 140*u);
+    ctx.font = Math.round(46*u) + 'px "IBM Plex Mono","Courier New",monospace';
+    let y = 330*u, page = 2;
+    layers.forEach((k, idx) => {
+      ctx.fillStyle = INKS[k];
+      ctx.fillRect(180*u, y, 70*u, 70*u);
+      ctx.strokeStyle = "#16140F";
+      ctx.lineWidth = Math.max(1, 2*u);
+      ctx.strokeRect(180*u, y, 70*u, 70*u);
+      ctx.fillStyle = "#16140F";
+      const range = sheetsPerLayer === 1 ? "page " + page : "pages " + page + "\u2013" + (page + sheetsPerLayer - 1);
+      ctx.fillText("layer " + (idx+1) + " \u2014 " + INK_LABELS[k].toLowerCase() + " \u2014 " + range, 290*u, y + 12*u);
+      page += sheetsPerLayer;
+      y += 108*u;
+    });
+    y += 50*u;
+    ctx.font = Math.round(40*u) + 'px "IBM Plex Mono","Courier New",monospace';
+    [
+      "each layer page is grayscale \u2014 black means full ink coverage",
+      "untreated full-color images separate to the black layer as grayscale",
+      "no misregistration is baked in; the press supplies its own",
+      "fold and cut guides are left off the masters"
+    ].forEach(nt => { ctx.fillText("\u00b7 " + nt, 180*u, y); y += 62*u; });
+    return c;
+  }
+
+  /* ------------------------- sheet composition ---------------------- */
+  const guidesChk = document.getElementById("guidesChk");
+
+  // scale: px per 300dpi px (1 = full print res)
+  function composeMiniSheet(scale, layerKey){
+    const rp = layerKey
+      ? (panel, n, t, w2, h2, d) => renderPanelLayer(panel, n, t, w2, h2, d, layerKey)
+      : renderPanel;
+    const pp = paperPx();
+    const W = Math.round(pp.W*scale), H = Math.round(pp.H*scale);
+    const pw = W/4, ph = H/2;
+    const c = document.createElement("canvas");
+    c.width = W; c.height = H;
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#FCFAF5";
+    ctx.fillRect(0,0,W,H);
+
+    TOP_ROW.forEach((pi, col) => {
+      const pc = rp(master[pi], pi+1, 8, pw, ph, scale);
+      ctx.save();
+      ctx.translate(col*pw + pw/2, ph/2);
+      ctx.rotate(Math.PI);
+      ctx.drawImage(pc, -pw/2, -ph/2);
+      ctx.restore();
+    });
+    BOTTOM_ROW.forEach((pi, col) => {
+      const pc = rp(master[pi], pi+1, 8, pw, ph, scale);
+      ctx.drawImage(pc, col*pw, ph);
+    });
+
+    if(!layerKey && guidesChk.checked){
+      ctx.save();
+      ctx.strokeStyle = "rgba(0,0,0,.30)";
+      ctx.lineWidth = Math.max(1, 2*scale);
+      ctx.setLineDash([14*scale, 18*scale]);
+      for(let k=1;k<4;k++){
+        ctx.beginPath(); ctx.moveTo(k*pw, 0); ctx.lineTo(k*pw, H); ctx.stroke();
+      }
+      ctx.beginPath(); ctx.moveTo(0, ph); ctx.lineTo(W, ph); ctx.stroke();
+      ctx.strokeStyle = "#FF48B0";
+      ctx.lineWidth = Math.max(2, 5*scale);
+      ctx.setLineDash([26*scale, 16*scale]);
+      ctx.beginPath(); ctx.moveTo(pw, ph); ctx.lineTo(3*pw, ph); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = "#FF48B0";
+      ctx.font = (54*scale) + 'px "Space Mono","Courier New",monospace';
+      ctx.textBaseline = "middle";
+      ctx.fillText("✂", pw + 16*scale, ph + 2*scale);
+      ctx.restore();
+    }
+    return c;
+  }
+
+  // booklet imposition, 1-based: sheet k front [N-2k+2 | 2k-1], back [2k | N-2k+1]
+  function bookletSides(N){
+    const sides = [];
+    for(let k=1; k<=N/4; k++){
+      sides.push({label:"Sheet "+k+" — front", left:N-2*k+2, right:2*k-1});
+      sides.push({label:"Sheet "+k+" — back",  left:2*k,     right:N-2*k+1});
+    }
+    return sides;
+  }
+
+  function composeBookletSide(side, N, scale, layerKey){
+    const rp = layerKey
+      ? (panel, n, t, w2, h2, d) => renderPanelLayer(panel, n, t, w2, h2, d, layerKey)
+      : renderPanel;
+    const pp = paperPx();
+    const W = Math.round(pp.W*scale), H = Math.round(pp.H*scale);
+    const pw = W/2, ph = H;
+    const c = document.createElement("canvas");
+    c.width = W; c.height = H;
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#FCFAF5";
+    ctx.fillRect(0,0,W,H);
+
+    // half-letter page is 1650px wide at 300dpi → dpiScale = pw/1650
+    const dpi = pw/(paperPx().W/2);
+    ctx.drawImage(rp(master[side.left-1],  side.left,  N, pw, ph, dpi), 0, 0);
+    ctx.drawImage(rp(master[side.right-1], side.right, N, pw, ph, dpi), pw, 0);
+
+    if(!layerKey && guidesChk.checked){
+      ctx.save();
+      ctx.strokeStyle = "rgba(0,0,0,.30)";
+      ctx.lineWidth = Math.max(1, 2*scale);
+      ctx.setLineDash([14*scale, 18*scale]);
+      ctx.beginPath(); ctx.moveTo(pw, 0); ctx.lineTo(pw, H); ctx.stroke();
+      ctx.restore();
+    }
+    return c;
+  }
+
+  /* ----------------------- instructions pages ----------------------- */
+  function howToMini(){
+    const c = document.createElement("canvas");
+    c.width = SHEET_W; c.height = SHEET_H;
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#FCFAF5"; ctx.fillRect(0,0,SHEET_W,SHEET_H);
+    ctx.fillStyle = "#16140F";
+    ctx.font = '150px "Archivo Black","Arial Black",sans-serif';
+    ctx.textBaseline = "top";
+    ctx.fillText("HOW TO FOLD", 180, 150);
+    ctx.fillStyle = "#FF48B0";
+    ctx.fillRect(180, 330, 1240, 16);
+
+    const steps = [
+      "1. Fold in half the long way (top to bottom). Crease, unfold.",
+      "2. Fold in half the short way (left to right). Keep folded.",
+      "3. Cut on the pink line, from the fold to the crease. Unfold.",
+      "4. Refold the long way. Push both ends toward the middle —",
+      "   the slit opens into a diamond.",
+      "5. Collapse into a booklet. Flatten. Cover in front. Done."
+    ];
+    ctx.fillStyle = "#16140F";
+    ctx.font = '52px "Space Mono","Courier New",monospace';
+    let y = 440;
+    for(const s of steps){ ctx.fillText(s, 180, y); y += 92; }
+
+    const dx = 180, dy = 1180, dw = 2940, dh = 1130;
+    const cw = dw/4, ch = dh/2;
+    ctx.strokeStyle = "#16140F"; ctx.lineWidth = 5;
+    ctx.strokeRect(dx, dy, dw, dh);
+    ctx.lineWidth = 3; ctx.setLineDash([16,16]);
+    for(let i=1;i<4;i++){ ctx.beginPath(); ctx.moveTo(dx+i*cw, dy); ctx.lineTo(dx+i*cw, dy+dh); ctx.stroke(); }
+    ctx.beginPath(); ctx.moveTo(dx, dy+ch); ctx.lineTo(dx+dw, dy+ch); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.strokeStyle = "#FF48B0"; ctx.lineWidth = 8; ctx.setLineDash([30,18]);
+    ctx.beginPath(); ctx.moveTo(dx+cw, dy+ch); ctx.lineTo(dx+3*cw, dy+ch); ctx.stroke();
+    ctx.setLineDash([]);
+
+    const names = {0:"COVER",7:"BACK"};
+    ctx.fillStyle = "#16140F";
+    ctx.font = '64px "Space Mono","Courier New",monospace';
+    ctx.textBaseline = "middle"; ctx.textAlign = "center";
+    TOP_ROW.forEach((pi,i) => {
+      ctx.save();
+      ctx.translate(dx + i*cw + cw/2, dy + ch/2);
+      ctx.rotate(Math.PI);
+      ctx.fillText(names[pi] !== undefined ? names[pi] : String(pi+1), 0, 0);
+      ctx.restore();
+    });
+    BOTTOM_ROW.forEach((pi,i) => {
+      ctx.fillText(names[pi] !== undefined ? names[pi] : String(pi+1), dx + i*cw + cw/2, dy + ch + ch/2);
+    });
+    ctx.textAlign = "left";
+    return c;
+  }
+
+  function howToBooklet(N){
+    const c = document.createElement("canvas");
+    c.width = SHEET_W; c.height = SHEET_H;
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#FCFAF5"; ctx.fillRect(0,0,SHEET_W,SHEET_H);
+    ctx.fillStyle = "#16140F";
+    ctx.font = '150px "Archivo Black","Arial Black",sans-serif';
+    ctx.textBaseline = "top";
+    ctx.fillText("HOW TO BIND", 180, 150);
+    ctx.fillStyle = "#FF48B0";
+    ctx.fillRect(180, 330, 1230, 16);
+
+    const S = N/4;
+    const steps = [
+      "1. Print double-sided, landscape, 100% scale.",
+      "   Duplex setting: FLIP ON SHORT EDGE. (Important!)",
+      "2. Keep the " + S + " sheet" + (S>1?"s":"") + " in printed order — sheet 1 is the",
+      "   outside (covers), the last sheet nests innermost.",
+      "3. Stack the sheets and fold the whole stack in half",
+      "   along the dashed center line.",
+      "4. Staple twice along the fold. No long-arm stapler?",
+      "   Open flat over a folded towel and press one through.",
+      "5. Crease hard. Trim the open edge flush if you like."
+    ];
+    ctx.fillStyle = "#16140F";
+    ctx.font = '52px "Space Mono","Courier New",monospace';
+    let y = 440;
+    for(const s of steps){ ctx.fillText(s, 180, y); y += 92; }
+
+    // diagram: nested sheets + fold line + staples
+    const dx = 180, dy = 1360, dw = 2000, dh = 950;
+    ctx.strokeStyle = "#16140F";
+    for(let i=2;i>=0;i--){
+      ctx.lineWidth = i===0 ? 6 : 3;
+      ctx.globalAlpha = i===0 ? 1 : .45;
+      ctx.strokeRect(dx - i*26, dy - i*26, dw + i*52, dh + i*52);
+    }
+    ctx.globalAlpha = 1;
+    ctx.setLineDash([24,18]);
+    ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(dx + dw/2, dy - 60); ctx.lineTo(dx + dw/2, dy + dh + 60); ctx.stroke();
+    ctx.setLineDash([]);
+    // staples
+    ctx.fillStyle = "#FF48B0";
+    ctx.fillRect(dx + dw/2 - 9, dy + dh*0.26, 18, 90);
+    ctx.fillRect(dx + dw/2 - 9, dy + dh*0.62, 18, 90);
+    // labels
+    ctx.fillStyle = "#16140F";
+    ctx.font = '56px "Space Mono","Courier New",monospace';
+    ctx.fillText("fold + staple here", dx + dw/2 + 60, dy + dh*0.40);
+    ctx.font = '48px "Space Mono","Courier New",monospace';
+    ctx.fillText("sheet 1 outside", dx - 80, dy + dh + 140);
+    return c;
+  }
+
+  // instructions render at letter proportions; center them on bigger papers
+  function howtoOnPaper(base){
+    const pp = paperPx();
+    if(pp.W === SHEET_W && pp.H === SHEET_H) return base;
+    const c = document.createElement("canvas");
+    c.width = pp.W; c.height = pp.H;
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#FCFAF5";
+    ctx.fillRect(0, 0, pp.W, pp.H);
+    const s = Math.min(pp.W/SHEET_W, pp.H/SHEET_H);
+    ctx.drawImage(base, (pp.W - SHEET_W*s)/2, (pp.H - SHEET_H*s)/2, SHEET_W*s, SHEET_H*s);
+    return c;
+  }
+
+  /* --------------------------- build cards -------------------------- */
+  const panelsEl = document.getElementById("panels");
+  let thumbCtxs = [];
+  const openGroups = {};
+
+  function rebuildCards(){
+    panelsEl.innerHTML = "";
+    thumbCtxs = [];
+    for(let i=0; i<pageCount; i++) buildCard(i);
+  }
+
+  function buildCard(i){
+    const p = master[i];
+    const label = pageLabel(i, pageCount);
+    const pnl = panelPx();
+    const th = Math.round(330 * pnl.ph / pnl.pw);
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML =
+      '<h3>' + label + '<span class="no">' + (i+1) + ' / ' + pageCount + '</span></h3>' +
+      '<canvas class="thumb" width="330" height="' + th + '" aria-label="Preview of ' + label + '"></canvas>' +
+      '<div class="field">' +
+        '<label for="head-' + i + '">Heading</label>' +
+        '<input type="text" id="head-' + i + '" maxlength="60" placeholder="' + (i===0?"Your zine title":"Optional headline") + '">' +
+      '</div>' +
+      '<div class="field">' +
+        '<label for="body-' + i + '">Text</label>' +
+        '<textarea id="body-' + i + '" maxlength="700" placeholder="' + (i===0?"Issue no. 1 · your name":"Write something…") + '"></textarea>' +
+      '</div>' +
+      '<div class="field row" style="justify-content:space-between">' +
+        '<span class="row">' +
+          '<button type="button" class="filebtn">Add images</button>' +
+          '<input type="file" class="filein" accept="image/*" multiple hidden>' +
+          '<button type="button" class="clearimg" hidden>clear</button>' +
+        '</span>' +
+      '</div>' +
+      '<div class="field chipfield" hidden><span class="imgchips"></span></div>' +
+
+      '<details class="grp" data-g="type"' + (openGroups[i + ":type"] ? " open" : "") + '>' +
+        '<summary>type &amp; text</summary>' +
+        '<div class="field">' +
+          '<label for="font-' + i + '">typeface</label>' +
+          '<select id="font-' + i + '" class="fontsel">' + fontOptions() + '</select>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label id="fglab-' + i + '">text color</label>' +
+          '<span class="swatches inks" role="radiogroup" aria-labelledby="fglab-' + i + '">' + textSwatches("fg-"+i) + '</span>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label id="szlab-' + i + '">text size</label>' +
+          '<span class="seg" role="radiogroup" aria-labelledby="szlab-' + i + '">' +
+            segOpt("sz-"+i,"s","S") + segOpt("sz-"+i,"m","M") + segOpt("sz-"+i,"l","L") +
+          '</span>' +
+        '</div>' +
+      '</details>' +
+
+      '<details class="grp" data-g="layout"' + (openGroups[i + ":layout"] ? " open" : "") + '>' +
+        '<summary>image layout</summary>' +
+        '<div class="field">' +
+          '<label id="gridlab-' + i + '">image grid</label>' +
+          '<span class="seg" role="radiogroup" aria-labelledby="gridlab-' + i + '">' +
+            segOpt("grid-"+i,"auto","Auto") + segOpt("grid-"+i,"1","1") +
+            segOpt("grid-"+i,"2","2") + segOpt("grid-"+i,"3","3") + segOpt("grid-"+i,"4","4") +
+          '</span>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label id="poslab-' + i + '">image position</label>' +
+          '<span class="seg" role="radiogroup" aria-labelledby="poslab-' + i + '">' +
+            segOpt("pos-"+i,"top","Top") + segOpt("pos-"+i,"bottom","Bottom") + segOpt("pos-"+i,"behind","Behind") +
+          '</span>' +
+        '</div>' +
+      '</details>' +
+
+      '<details class="grp" data-g="ink"' + (openGroups[i + ":ink"] ? " open" : "") + '>' +
+        '<summary>ink &amp; paper</summary>' +
+        '<div class="field">' +
+          '<label id="inklab-' + i + '">Ink 1 — riso overlay</label>' +
+          '<span class="swatches inks" role="radiogroup" aria-labelledby="inklab-' + i + '">' +
+            inkSwatches("ink-"+i) +
+          '</span>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label id="ink2lab-' + i + '">Ink 2 — second pass (two-color)</label>' +
+          '<span class="swatches inks" role="radiogroup" aria-labelledby="ink2lab-' + i + '">' +
+            inkSwatches("ink2-"+i) +
+          '</span>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label id="htlab-' + i + '">Halftone dots</label>' +
+          '<span class="seg" role="radiogroup" aria-labelledby="htlab-' + i + '">' +
+            segOpt("ht-"+i,"off","Off") + segOpt("ht-"+i,"fine","Fine") +
+            segOpt("ht-"+i,"med","Med") + segOpt("ht-"+i,"coarse","Coarse") +
+          '</span>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label id="bglab-' + i + '">page color</label>' +
+          '<span class="swatches inks" role="radiogroup" aria-labelledby="bglab-' + i + '">' + bgSwatches("bg-"+i) + '</span>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label id="texlab-' + i + '">paper texture</label>' +
+          '<span class="seg" role="radiogroup" aria-labelledby="texlab-' + i + '">' +
+            segOpt("tex-"+i,"off","Flat") + segOpt("tex-"+i,"on","Riso grain") +
+          '</span>' +
+        '</div>' +
+      '</details>';
+    panelsEl.appendChild(card);
+    thumbCtxs.push(card.querySelector(".thumb").getContext("2d"));
+    card.querySelectorAll("details.grp").forEach(d =>
+      d.addEventListener("toggle", () => { openGroups[i + ":" + d.dataset.g] = d.open; }));
+
+    // sync values from state
+    card.querySelector("#head-"+i).value = p.heading;
+    card.querySelector("#body-"+i).value = p.body;
+    card.querySelector('input[name="bg-'+i+'"][value="'+p.bg+'"]').checked = true;
+    card.querySelector('input[name="sz-'+i+'"][value="'+p.size+'"]').checked = true;
+    card.querySelector('input[name="ink-'+i+'"][value="'+p.ink+'"]').checked = true;
+    card.querySelector('input[name="ink2-'+i+'"][value="'+p.ink2+'"]').checked = true;
+    card.querySelector('input[name="ht-'+i+'"][value="'+p.ht+'"]').checked = true;
+    card.querySelector('input[name="grid-'+i+'"][value="'+p.grid+'"]').checked = true;
+    card.querySelector('input[name="pos-'+i+'"][value="'+(p.imgpos||"top")+'"]').checked = true;
+    card.querySelector('input[name="tex-'+i+'"][value="'+(p.tex||"off")+'"]').checked = true;
+    card.querySelector('input[name="fg-'+i+'"][value="'+p.fg+'"]').checked = true;
+    card.querySelector(".fontsel").value = p.font;
+
+    // listeners
+    card.querySelector("#head-"+i).addEventListener("input", e => { p.heading = e.target.value; queueRender(); });
+    card.querySelector("#body-"+i).addEventListener("input", e => { p.body = e.target.value; queueRender(); });
+    bindRadios(card, "bg-"+i,   v => { p.bg = v; queueRender(); });
+    bindRadios(card, "sz-"+i,   v => { p.size = v; queueRender(); });
+    bindRadios(card, "ink-"+i,  v => { p.ink = v; queueRender(); });
+    bindRadios(card, "ink2-"+i, v => { p.ink2 = v; queueRender(); });
+    bindRadios(card, "ht-"+i,   v => { p.ht = v; queueRender(); });
+    bindRadios(card, "grid-"+i, v => { p.grid = v; queueRender(); });
+    bindRadios(card, "pos-"+i,  v => { p.imgpos = v; queueRender(); });
+    bindRadios(card, "tex-"+i,  v => { p.tex = v; queueRender(); });
+    bindRadios(card, "fg-"+i,   v => { p.fg = v; queueRender(); });
+    card.querySelector(".fontsel").addEventListener("change", e => { p.font = e.target.value; queueRender(); });
+
+    const fileInput = card.querySelector(".filein");
+    const addBtn    = card.querySelector(".filebtn");
+    const clearBtn  = card.querySelector(".clearimg");
+    const thumb     = card.querySelector(".thumb");
+    const chipField = card.querySelector(".chipfield");
+    const chips     = card.querySelector(".imgchips");
+
+    function refreshChips(){
+      chips.innerHTML = "";
+      chipField.hidden = p.imgs.length === 0;
+      clearBtn.hidden = p.imgs.length === 0;
+      p.imgs.forEach((im, idx) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "chip";
+        b.title = "remove image " + (idx+1);
+        b.setAttribute("aria-label", "remove image " + (idx+1));
+        const t = document.createElement("img");
+        t.src = im.src; t.alt = "";
+        b.appendChild(t);
+        b.addEventListener("click", () => {
+          p.imgs.splice(idx, 1);
+          refreshChips(); queueRender();
+        });
+        chips.appendChild(b);
+      });
+    }
+    refreshChips();
+
+    function loadFiles(files){
+      if(!files || !files.length) return;
+      const list = Array.prototype.filter.call(files, f => f.type && f.type.indexOf("image/") === 0);
+      if(list.length < files.length) alert("Skipped files that aren't images — JPG, PNG, GIF, or WebP work.");
+      const room = 4 - p.imgs.length;
+      if(room <= 0){ alert("Each panel holds up to four images — remove one first."); return; }
+      if(list.length > room) alert("Each panel holds up to four images — keeping the first " + room + ".");
+      list.slice(0, room).forEach(f => {
+        const img = new Image();
+        p.imgs.push(img);                 // push now so order matches selection
+        const reader = new FileReader();
+        reader.onload = () => {
+          img.onload = () => { refreshChips(); queueRender(); };
+          img.onerror = () => {
+            const k = p.imgs.indexOf(img);
+            if(k !== -1) p.imgs.splice(k, 1);
+            refreshChips();
+            alert("One image couldn't be read — try a JPG or PNG.");
+          };
+          img.src = reader.result;
+          // if collaborating, upload to shared storage so teammates get a light URL
+          if(typeof groupCode !== "undefined" && groupCode){
+            img._uploading = true;
+            uploadImageBlob(f).then(url => {
+              img.hostedUrl = url; img._uploading = false;
+              pushSoon();                        // now share the light URL
+            }).catch(err => {
+              img._uploading = false; console.error("image upload failed", err);
+              // falls back to the embedded data URL for this session
+              pushSoon();
+            });
+          }
+        };
+        reader.onerror = () => {
+          const k = p.imgs.indexOf(img);
+          if(k !== -1) p.imgs.splice(k, 1);
+          alert("One file couldn't be read — please try again.");
+        };
+        reader.readAsDataURL(f);
+      });
+    }
+
+    addBtn.addEventListener("click", () => fileInput.click());
+    thumb.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", e => {
+      loadFiles(e.target.files);
+      fileInput.value = "";
+    });
+    ["dragenter","dragover"].forEach(ev => thumb.addEventListener(ev, e => {
+      e.preventDefault(); thumb.classList.add("drag");
+    }));
+    thumb.addEventListener("dragleave", () => thumb.classList.remove("drag"));
+    thumb.addEventListener("drop", e => {
+      e.preventDefault(); thumb.classList.remove("drag");
+      loadFiles(e.dataTransfer.files);
+    });
+    clearBtn.addEventListener("click", () => {
+      p.imgs = [];
+      refreshChips(); fileInput.value = ""; queueRender();
+    });
+  }
+
+  function inkSwatches(name){
+    let out = '<label class="swatch sw-none" title="Original colors"><input type="radio" name="' + name + '" value="none"><span></span></label>';
+    for(const k in INKS){
+      out += '<label class="swatch" title="' + INK_LABELS[k] + '">' +
+        '<input type="radio" name="' + name + '" value="' + k + '">' +
+        '<span style="background:' + INKS[k] + '"></span></label>';
+    }
+    return out;
+  }
+  function bgSwatches(name){
+    let out = '<label class="swatch" title="Paper white"><input type="radio" name="' + name + '" value="paper"><span style="background:#FCFAF5"></span></label>';
+    for(const k in INKS){
+      out += '<label class="swatch" title="' + INK_LABELS[k] + '">' +
+        '<input type="radio" name="' + name + '" value="' + k + '">' +
+        '<span style="background:' + INKS[k] + '"></span></label>';
+    }
+    return out;
+  }
+  function textSwatches(name){
+    let out = '<label class="swatch sw-auto" title="Auto — match page color"><input type="radio" name="' + name + '" value="auto"><span></span></label>' +
+      '<label class="swatch" title="Paper white"><input type="radio" name="' + name + '" value="paper"><span style="background:#FCFAF5"></span></label>';
+    for(const k in INKS){
+      out += '<label class="swatch" title="' + INK_LABELS[k] + '">' +
+        '<input type="radio" name="' + name + '" value="' + k + '">' +
+        '<span style="background:' + INKS[k] + '"></span></label>';
+    }
+    return out;
+  }
+  function fontOptions(){
+    let out = "";
+    for(const k in TYPEFACES){
+      out += '<option value="' + k + '">' + TYPEFACES[k].label + '</option>';
+    }
+    return out;
+  }
+  function segOpt(name, val, text){
+    return '<label><input type="radio" name="' + name + '" value="' + val + '"><span>' + text + '</span></label>';
+  }
+  function bindRadios(scope, name, fn){
+    scope.querySelectorAll('input[name="' + name + '"]').forEach(r =>
+      r.addEventListener("change", e => fn(e.target.value)));
+  }
+
+  /* --------------------------- live preview ------------------------- */
+  const sheetsEl = document.getElementById("sheets");
+
+  function renderAll(){
+    // thumbnails
+    const pnl = panelPx();
+    const th = Math.round(330 * pnl.ph / pnl.pw);
+    for(let i=0; i<pageCount; i++){
+      const pc = renderPanel(master[i], i+1, pageCount, 330, th, 330/pnl.pw);
+      const t = thumbCtxs[i];
+      if(!t) continue;
+      t.clearRect(0, 0, t.canvas.width, t.canvas.height);
+      t.drawImage(pc, 0, 0);
+    }
+    // press sheets (preview width capped so big papers stay light)
+    sheetsEl.innerHTML = "";
+    const sheetW = paperPx().W;
+    if(format === "mini"){
+      addSheetFigure(composeMiniSheet(Math.min(0.5, 1650/sheetW)), "Press sheet — print single-sided");
+    } else {
+      const s = Math.min(0.4, 1320/sheetW);
+      for(const side of bookletSides(pageCount)){
+        addSheetFigure(composeBookletSide(side, pageCount, s), side.label);
+      }
+    }
+  }
+
+  function addSheetFigure(canvas, caption){
+    const fig = document.createElement("figure");
+    fig.appendChild(canvas);
+    const cap = document.createElement("figcaption");
+    cap.textContent = caption;
+    fig.appendChild(cap);
+    sheetsEl.appendChild(fig);
+  }
+
+  let raf = null, timer = null;
+  function queueRender(){
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      if(raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(renderAll);
+    }, 160);
+    if(typeof collabNotify === "function") collabNotify();
+  }
+  guidesChk.addEventListener("change", queueRender);
+
+  /* --------------------------- PDF export --------------------------- */
+  const exportBtn = document.getElementById("exportBtn");
+  exportBtn.addEventListener("click", async () => {
+    exportBtn.disabled = true;
+    exportBtn.textContent = "Pressing…";
+    try{
+      await document.fonts.ready;
+      await ensureFonts();
+      const { jsPDF } = window.jspdf;
+      const P = PAPERS[paperKey];
+      const pdf = new jsPDF({ orientation:"landscape", unit:"in", format:[P.w, P.h] });
+      const addCanvas = (canvas, first) => {
+        if(!first) pdf.addPage([P.w, P.h], "landscape");
+        pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, P.w, P.h);
+      };
+      if(format === "mini"){
+        addCanvas(composeMiniSheet(1), true);
+        if(document.getElementById("howtoChk").checked) addCanvas(howtoOnPaper(howToMini()), false);
+      } else {
+        const sides = bookletSides(pageCount);
+        for(let s=0; s<sides.length; s++){
+          addCanvas(composeBookletSide(sides[s], pageCount, 1), s===0);
+          await new Promise(r => setTimeout(r, 0)); // let the UI breathe between sheets
+        }
+        if(document.getElementById("howtoChk").checked) addCanvas(howtoOnPaper(howToBooklet(pageCount)), false);
+      }
+      pdf.save(format === "mini" ? "zine-mini-" + paperKey + ".pdf" : "zine-booklet-" + pageCount + "pp-" + paperKey + ".pdf");
+    }catch(err){
+      console.error(err);
+      alert("The PDF couldn't be generated. Check that your images loaded, then try again.");
+    }finally{
+      exportBtn.disabled = false;
+      exportBtn.textContent = "Print the PDF ↓";
+    }
+  });
+
+  /* ----------------------- riso separations export ------------------ */
+  const risoBtn = document.getElementById("risoBtn");
+  risoBtn.addEventListener("click", async () => {
+    risoBtn.disabled = true;
+    risoBtn.textContent = "separating\u2026";
+    try{
+      await document.fonts.ready;
+      await ensureFonts();
+      const layers = collectInkLayers();
+      if(!layers.length){
+        alert("Nothing to separate yet \u2014 add some text or images first.");
+        return;
+      }
+      const P = PAPERS[paperKey];
+      const pdf = new jsPDF2();
+      function jsPDF2(){
+        const { jsPDF } = window.jspdf;
+        return new jsPDF({ orientation:"landscape", unit:"in", format:[P.w, P.h] });
+      }
+      const addCanvas = (canvas, first) => {
+        if(!first) pdf.addPage([P.w, P.h], "landscape");
+        pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, P.w, P.h);
+      };
+      const sides = format === "mini" ? null : bookletSides(pageCount);
+      const sheetsPerLayer = format === "mini" ? 1 : sides.length;
+      addCanvas(risoKeyPage(layers, sheetsPerLayer), true);
+      for(const K of layers){
+        if(format === "mini"){
+          addCanvas(composeMiniSheet(1, K), false);
+        } else {
+          for(const side of sides){
+            addCanvas(composeBookletSide(side, pageCount, 1, K), false);
+            await new Promise(r => setTimeout(r, 0));
+          }
+        }
+        await new Promise(r => setTimeout(r, 0));
+      }
+      pdf.save("zine-riso-separations-" + paperKey + ".pdf");
+    }catch(err){
+      console.error(err);
+      alert("The separations couldn't be generated \u2014 please try again.");
+    }finally{
+      risoBtn.disabled = false;
+      risoBtn.textContent = "Print with riso \u2193";
+    }
+  });
+
+  /* ------------------------- format switching ----------------------- */
+  const countbox = document.getElementById("countbox");
+  const pcount = document.getElementById("pcount");
+  const stepsMini = document.getElementById("steps-mini");
+  const stepsBooklet = document.getElementById("steps-booklet");
+  const bindLabel = document.getElementById("bindText");
+
+  function applyFormatUI(){
+    document.querySelector('input[name="format"][value="' + format + '"]').checked = true;
+    pcount.value = String(pageCount);
+    document.getElementById("psize").value = paperKey;
+    countbox.hidden = format !== "booklet";
+    stepsMini.hidden = format !== "mini";
+    stepsBooklet.hidden = format !== "booklet";
+    bindLabel.textContent = format === "mini" ? "Fold & cut" : "Fold & staple";
+  }
+
+  document.querySelectorAll('input[name="format"]').forEach(r =>
+    r.addEventListener("change", e => {
+      format = e.target.value;
+      pageCount = (format === "mini") ? 8 : parseInt(pcount.value, 10);
+      applyFormatUI();
+      rebuildCards();
+      queueRender();
+    }));
+  pcount.addEventListener("change", () => {
+    pageCount = parseInt(pcount.value, 10);
+    rebuildCards();
+    queueRender();
+  });
+  const psize = document.getElementById("psize");
+  psize.addEventListener("change", () => {
+    paperKey = PAPERS[psize.value] ? psize.value : "letter";
+    rebuildCards();
+    queueRender();
+  });
+
+  /* ----------------------------- example ---------------------------- */
+  document.getElementById("exampleBtn").addEventListener("click", () => {
+    const ex = [
+      {heading:"Night Bus", body:"a tiny field guide\nissue no. 1", bg:"pink", size:"m"},
+      {heading:"", body:"Everything in this zine was seen from the back seat of the 42, somewhere between midnight and the depot.", bg:"paper", size:"m"},
+      {heading:"Seat 14", body:"Someone left a paperback with every third page folded down. A code? A bookmark habit? Unknowable.", bg:"paper", size:"s"},
+      {heading:"The Driver", body:"Hums only descending melodies. Has never once hit a yellow light. We suspect time bends for her.", bg:"black", size:"s"},
+      {heading:"3:12 AM", body:"The windows turn to mirrors and the whole bus rides through its own reflection.", bg:"black", size:"m"},
+      {heading:"Lost + Found", body:"one glove (left)\none umbrella (broken)\none phone number (unreadable)\none very good dog (claimed)", bg:"paper", size:"s"},
+      {heading:"Transfer", body:"Every ride ends. Keep the ticket stub. It's proof you went somewhere.", bg:"pink", size:"m"},
+      {heading:"", body:"made on the Paste-Up press\nfold your own at home", bg:"paper", size:"s"}
+    ];
+    ex.forEach((e, i) => {
+      if(i >= pageCount) return;
+      // the closer goes on the back cover wherever that is
+      const idx = (i === 7) ? pageCount-1 : i;
+      master[idx].heading = e.heading;
+      master[idx].body = e.body;
+      master[idx].bg = e.bg;
+      master[idx].size = e.size;
+    });
+    rebuildCards();
+    queueRender();
+  });
+
+  /* ------------------------ save / open project --------------------- */
+  function serializeZine(forNetwork){
+    return {
+      app:"paste-up", version:2, format, pageCount, paper:paperKey,
+      panels: master.map(p => ({
+        heading:p.heading, body:p.body, bg:p.bg, size:p.size,
+        font:p.font, fg:p.fg,
+        ink:p.ink, ink2:p.ink2, ht:p.ht, grid:p.grid, imgpos:p.imgpos, tex:p.tex,
+        imgs: p.imgs
+          .filter(im => im.src && im.naturalWidth)
+          // for live sync, only send images that are hosted (skip ones mid-upload
+          // and never send heavy data URLs over the wire)
+          .filter(im => !(forNetwork && typeof groupCode !== "undefined" && groupCode && !im.hostedUrl))
+          .map(im => im.hostedUrl || im.src)
+      }))
+    };
+  }
+
+  // rebuild local state from a serialized zine (shared by file-open and network sync)
+  function applyZine(data, onImg){
+    if(!data || data.app !== "paste-up" || !Array.isArray(data.panels)) return false;
+    format = data.format === "booklet" ? "booklet" : "mini";
+    const allowed = [8,12,16,20,24];
+    pageCount = format === "mini" ? 8 : (allowed.indexOf(data.pageCount) !== -1 ? data.pageCount : 8);
+    paperKey = PAPERS[data.paper] ? data.paper : "letter";
+    for(let i=0; i<MAXP; i++){
+      const s = data.panels[i] || {};
+      const p = master[i];
+      p.heading = typeof s.heading === "string" ? s.heading.slice(0,60) : "";
+      p.body    = typeof s.body === "string" ? s.body.slice(0,700) : "";
+      p.bg = s.bg === "paper" ? "paper" : s.bg === "ink" ? "black" : (INKS[s.bg] ? s.bg : (LEGACY_INKS[s.bg] || "paper"));
+      p.font = TYPEFACES[s.font] ? s.font : "press";
+      p.fg = (s.fg === "auto" || s.fg === "paper" || INKS[s.fg]) ? s.fg : (LEGACY_INKS[s.fg] || "auto");
+      p.size = BODY_SIZES[s.size] ? s.size : "m";
+      p.ink  = LEGACY_INKS[s.ink]  || ((s.ink === "none"  || INKS[s.ink])  ? s.ink  : "none");
+      p.ink2 = LEGACY_INKS[s.ink2] || ((s.ink2 === "none" || INKS[s.ink2]) ? s.ink2 : "none");
+      p.ht   = (s.ht === "off" || HT_CELLS[s.ht]) ? s.ht : "off";
+      p.grid = ["auto","1","2","3","4"].indexOf(s.grid) !== -1 ? s.grid : "auto";
+      p.imgpos = ["top","bottom","behind"].indexOf(s.imgpos) !== -1 ? s.imgpos : "top";
+      p.tex = s.tex === "on" ? "on" : "off";
+      p.imgs = [];
+      const srcs = Array.isArray(s.imgs) ? s.imgs.slice(0,4) : (typeof s.img === "string" ? [s.img] : []);
+      srcs.forEach(src => {
+        if(typeof src !== "string") return;
+        const isData = src.indexOf("data:image/") === 0;
+        const isHttp = src.indexOf("http") === 0;
+        if(!isData && !isHttp) return;
+        const img = new Image();
+        if(isHttp){ img.crossOrigin = "anonymous"; img.hostedUrl = src; }  // keep canvas untainted; remember URL
+        img.onload = () => { if(onImg) onImg(); };
+        img.src = src; p.imgs.push(img);
+      });
+    }
+    applyFormatUI(); rebuildCards(); queueRender();
+    return true;
+  }
+
+  document.getElementById("saveBtn").addEventListener("click", () => {
+    const data = serializeZine();
+    const blob = new Blob([JSON.stringify(data)], {type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "zine-project.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  });
+
+  const openFile = document.getElementById("openFile");
+  document.getElementById("openBtn").addEventListener("click", () => openFile.click());
+  openFile.addEventListener("change", e => {
+    const f = e.target.files && e.target.files[0];
+    openFile.value = "";
+    if(!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try{
+        const data = JSON.parse(reader.result);
+        if(!applyZine(data, queueRender)){ alert("That file doesn't look like a zine_machine project."); return; }
+        pushSoon();   // if in a group, share the opened zine
+      }catch(err){ console.error(err); alert("That project file couldn't be read."); }
+    };
+    reader.readAsText(f);
+  });
+
+  /* ------------------------ flip-through reader --------------------- */
+  const readerEl   = document.getElementById("reader");
+  const pageLeftEl = document.getElementById("pageLeft");
+  const pageRightEl= document.getElementById("pageRight");
+  const flipperEl  = document.getElementById("flipper");
+  const whereEl    = document.getElementById("readerWhere");
+  const prevBtn    = document.getElementById("readerPrev");
+  const nextBtn    = document.getElementById("readerNext");
+  const closeBtn   = document.getElementById("readerClose");
+  const leftC  = pageLeftEl.querySelector("canvas");
+  const rightC = pageRightEl.querySelector("canvas");
+  const flipFrontC = flipperEl.querySelector(".front canvas");
+  const flipBackC  = flipperEl.querySelector(".back canvas");
+
+  let pageCanvs = [], spreads = [], curSpread = 0, flipping = false;
+
+  function spreadLabel(sp){
+    if(sp[0] === null) return "Front cover";
+    if(sp[1] === null) return "Back cover";
+    return "Pages " + (sp[0]+1) + "–" + (sp[1]+1);
+  }
+
+  function setPage(canvasEl, holder, idx){
+    const ctx = canvasEl.getContext("2d");
+    ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+    if(idx === null){
+      if(holder) holder.classList.add("empty");
+      return;
+    }
+    if(holder) holder.classList.remove("empty");
+    ctx.drawImage(pageCanvs[idx], 0, 0);
+  }
+
+  function showSpread(s){
+    const sp = spreads[s];
+    setPage(leftC, pageLeftEl, sp[0]);
+    setPage(rightC, pageRightEl, sp[1]);
+    whereEl.textContent = spreadLabel(sp);
+    prevBtn.disabled = s === 0;
+    nextBtn.disabled = s === spreads.length - 1;
+  }
+
+  function openReader(){
+    const pnl = panelPx();
+    const pH = Math.round(520 * pnl.ph / pnl.pw);
+    [leftC, rightC, flipFrontC, flipBackC].forEach(cv => { cv.width = 520; cv.height = pH; });
+    document.getElementById("book").style.aspectRatio = String((2*520)/pH);
+    pageCanvs = [];
+    for(let i=0; i<pageCount; i++){
+      pageCanvs.push(renderPanel(master[i], i+1, pageCount, 520, pH, 520/pnl.pw));
+    }
+    spreads = [[null, 0]];
+    for(let i=1; i<pageCount-1; i+=2) spreads.push([i, i+1]);
+    spreads.push([pageCount-1, null]);
+    curSpread = 0;
+    flipping = false;
+    flipperEl.classList.remove("on");
+    showSpread(0);
+    readerEl.hidden = false;
+    document.body.style.overflow = "hidden";
+    nextBtn.focus();
+  }
+
+  function closeReader(){
+    readerEl.hidden = true;
+    document.body.style.overflow = "";
+    pageCanvs = [];
+    document.getElementById("previewBtn").focus();
+  }
+
+  function turn(dir){
+    const target = curSpread + dir;
+    if(flipping || target < 0 || target >= spreads.length) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if(reduce){
+      curSpread = target;
+      showSpread(curSpread);
+      return;
+    }
+    flipping = true;
+    const cur = spreads[curSpread], next = spreads[target];
+    let from, to;
+    if(dir > 0){
+      // right page lifts and turns left: front = current right, back = next left
+      setPage(flipFrontC, null, cur[1]);
+      setPage(flipBackC, null, next[0]);
+      setPage(rightC, pageRightEl, next[1]);   // revealed beneath
+      from = "rotateY(0deg)"; to = "rotateY(-180deg)";
+    } else {
+      // left page turns back to the right: back = current left, front = next right
+      setPage(flipFrontC, null, next[1]);
+      setPage(flipBackC, null, cur[0]);
+      setPage(leftC, pageLeftEl, next[0]);     // revealed beneath
+      from = "rotateY(-180deg)"; to = "rotateY(0deg)";
+    }
+    flipperEl.style.transition = "none";
+    flipperEl.style.transform = from;
+    flipperEl.classList.add("on");
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      flipperEl.style.transition = "";
+      flipperEl.style.transform = to;
+    }));
+    let fired = false;
+    const done = () => {
+      if(fired) return;
+      fired = true;
+      flipperEl.classList.remove("on");
+      curSpread = target;
+      showSpread(curSpread);
+      flipping = false;
+    };
+    flipperEl.addEventListener("transitionend", done, {once:true});
+    setTimeout(done, 800);  // safety net
+  }
+
+  document.getElementById("previewBtn").addEventListener("click", openReader);
+  nextBtn.addEventListener("click", () => turn(1));
+  prevBtn.addEventListener("click", () => turn(-1));
+  pageRightEl.addEventListener("click", () => turn(1));
+  pageLeftEl.addEventListener("click", () => turn(-1));
+  closeBtn.addEventListener("click", closeReader);
+  document.getElementById("readerScrim").addEventListener("click", closeReader);
+  document.addEventListener("keydown", e => {
+    if(readerEl.hidden) return;
+    if(e.key === "ArrowRight"){ e.preventDefault(); turn(1); }
+    else if(e.key === "ArrowLeft"){ e.preventDefault(); turn(-1); }
+    else if(e.key === "Escape"){ closeReader(); }
+  });
+
+  /* ------------------------------ init ------------------------------ */
+  rebuildCards();
+  ensureFonts().then(renderAll);
+  document.fonts.ready.then(renderAll);
+  renderAll();
+
+  /* ============================================================
+     COLLABORATION LAYER (slice one) — shared zine via Supabase
+     ============================================================ */
+  const SUPA_URL = "https://tzmyorhcsjvtpqygaqbq.supabase.co";
+  const SUPA_KEY = "sb_publishable_SbZ0XBQ98u_KM745C4TYFQ_CFZ_5Cx1";
+
+  let sb = null, channel = null, groupCode = null;
+  let pushTimer = null, suppressPushUntil = 0, lastRemoteJSON = "";
+  let myWriteStamp = "";
+
+  const cbBar = document.getElementById("collabBar");
+  const cbCode = document.getElementById("cbCode");
+  const cbJoin = document.getElementById("cbJoin");
+  const cbLeave = document.getElementById("cbLeave");
+  const cbDot = document.getElementById("cbDot");
+  const cbState = document.getElementById("cbState");
+  const cbName = document.getElementById("cbName");
+  const cbForm = document.getElementById("cbForm");
+  const cbJoined = document.getElementById("cbJoined");
+  const cbGroupName = document.getElementById("cbGroupName");
+  const cbWho = document.getElementById("cbWho");
+
+  // presence identity for this browser session
+  const PRES_COLORS = ["#F4C24B","#7ED957","#FF9EB1","#8AB4F8","#C79BF0","#4EC8C0","#F0895B","#B8D84A"];
+  const myId = Math.random().toString(36).slice(2,10);
+  let myName = "guest";
+  let myColor = PRES_COLORS[Math.abs(hashStr(myId)) % PRES_COLORS.length];
+  let myPresence = { id:myId, name:myName, color:myColor, editing:null };
+  let trackTimer = null;
+  function hashStr(s){ let h=0; for(let i=0;i<s.length;i++){ h=(h*31+s.charCodeAt(i))|0; } return h; }
+
+  function setStatus(text, cls){
+    cbState.textContent = text;
+    cbDot.className = "cb-dot" + (cls ? " " + cls : "");
+  }
+
+  function ensureClient(){
+    if(sb) return true;
+    if(!window.supabase || !window.supabase.createClient){
+      setStatus("couldn't load sync library — check your connection", "");
+      return false;
+    }
+    sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+    return true;
+  }
+
+  // ---- image storage ----
+  const IMG_BUCKET = "zine-images";
+  function uploadImageBlob(fileOrBlob){
+    if(!ensureClient()) return Promise.reject(new Error("no client"));
+    const type = (fileOrBlob.type || "image/png");
+    const ext = type.indexOf("png")>=0?"png":type.indexOf("webp")>=0?"webp":type.indexOf("gif")>=0?"gif":"jpg";
+    const path = (groupCode || "solo") + "/" + Date.now() + "-" + Math.random().toString(36).slice(2,8) + "." + ext;
+    return sb.storage.from(IMG_BUCKET).upload(path, fileOrBlob, { contentType:type, upsert:false })
+      .then(({ error }) => {
+        if(error) throw error;
+        const { data } = sb.storage.from(IMG_BUCKET).getPublicUrl(path);
+        return data.publicUrl;
+      });
+  }
+  // upload any not-yet-hosted images (e.g. added before joining), then resync
+  async function uploadExistingImages(){
+    if(!groupCode) return;
+    let changed = false;
+    for(const p of master){
+      for(const im of (p.imgs || [])){
+        if(im.hostedUrl || !im.src || im.src.indexOf("data:image/") !== 0) continue;
+        try{
+          const blob = await (await fetch(im.src)).blob();
+          im.hostedUrl = await uploadImageBlob(blob);
+          changed = true;
+        }catch(e){ console.error("pre-join image upload failed", e); }
+      }
+    }
+    if(changed) pushSoon();
+  }
+
+  // ---- push local zine up (debounced) ----
+  function pushSoon(){
+    if(!groupCode) return;
+    if(pushTimer) clearTimeout(pushTimer);
+    setStatus("group " + groupCode + " · saving…", "saving");
+    pushTimer = setTimeout(pushNow, 700);
+  }
+  async function pushNow(){
+    if(!groupCode || !sb) return;
+    const payload = serializeZine(true);
+    myWriteStamp = Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+    payload._writer = myWriteStamp;      // tag so we can recognize our own echo reliably
+    try{
+      const { error } = await sb.from("zines").update({ data:payload, updated_at:new Date().toISOString() }).eq("code", groupCode);
+      if(error) throw error;
+      setStatus("group " + groupCode + " · in sync", "live");
+    }catch(e){
+      console.error(e);
+      setStatus("group " + groupCode + " · save failed (retrying)", "saving");
+      setTimeout(pushNow, 2000);
+    }
+  }
+
+  // ---- apply a remote zine without destroying active typing ----
+  let pendingRemote = null;
+  function applyRemote(data){
+    if(data && data._writer && data._writer === myWriteStamp) return;  // our own echo — ignore
+    // if the user is actively typing in a field, defer until they pause/blur
+    const ae = document.activeElement;
+    const typing = ae && (ae.tagName === "TEXTAREA" || ae.tagName === "INPUT") && cbBar.contains(ae) === false;
+    if(typing){ pendingRemote = data; return; }
+    // preserve focus target across the rebuild
+    const focus = captureFocus();
+    suppressPushUntil = Date.now() + 1500;   // don't echo this remote change back out
+    applyZine(data, queueRender);
+    restoreFocus(focus);
+    if(typeof paintPresence === "function") paintPresence();
+    setStatus("group " + groupCode + " · in sync", "live");
+  }
+  // when the user stops typing, flush any deferred remote update
+  document.addEventListener("focusout", () => {
+    setTimeout(() => {
+      if(pendingRemote && document.activeElement && document.activeElement.tagName === "BODY"){
+        const d = pendingRemote; pendingRemote = null; applyRemote(d);
+      }
+    }, 50);
+  });
+
+  function captureFocus(){
+    const ae = document.activeElement;
+    if(!ae || !(ae.tagName === "TEXTAREA" || ae.tagName === "INPUT")) return null;
+    const card = ae.closest && ae.closest(".card");
+    if(!card) return null;
+    const cards = Array.from(panelsEl.querySelectorAll(".card"));
+    return { idx:cards.indexOf(card), cls:ae.className, start:ae.selectionStart, end:ae.selectionEnd };
+  }
+  function restoreFocus(f){
+    if(!f || f.idx < 0) return;
+    const cards = Array.from(panelsEl.querySelectorAll(".card"));
+    const card = cards[f.idx]; if(!card) return;
+    const el = card.querySelector("." + (f.cls||"").split(" ").join("."));
+    if(el){ el.focus(); try{ el.setSelectionRange(f.start, f.end); }catch(_){} }
+  }
+
+  // ---- join / leave a group ----
+  async function joinGroup(code){
+    if(!ensureClient()) return;
+    setStatus("checking code…", "saving");
+    cbCode.disabled = true; cbJoin.style.display = "none";
+    // the code must already exist (instructor pre-registers valid codes)
+    let row;
+    try{
+      const { data:rows, error } = await sb.from("zines").select("data").eq("code", code).limit(1);
+      if(error) throw error;
+      if(!rows || !rows.length){
+        setStatus("no such group — check your code with your instructor", "");
+        cbCode.disabled = false; cbJoin.style.display = ""; cbLeave.style.display = "none";
+        return;
+      }
+      row = rows[0];
+    }catch(e){
+      console.error(e);
+      setStatus("couldn't reach the server — check your connection", "");
+      cbCode.disabled = false; cbJoin.style.display = ""; cbLeave.style.display = "none";
+      return;
+    }
+    // code is valid — join it
+    groupCode = code;
+    cbLeave.style.display = "";
+    if(row.data){
+      // existing zine for this group — load it
+      applyZine(row.data, queueRender);
+    } else {
+      // registered but empty (first group to open it) — seed with current canvas
+      await pushNow();
+    }
+    setStatus("group " + code + " · in sync", "live");
+    myName = (cbName.value || "").trim().slice(0,24) || "guest";
+    myPresence = { id:myId, name:myName, color:myColor, editing:null };
+    channel = sb.channel("zine-" + code, { config:{ presence:{ key:myId } } })
+      .on("postgres_changes",
+          { event:"*", schema:"public", table:"zines", filter:"code=eq." + code },
+          () => refetch())
+      .on("presence", { event:"sync" }, paintPresence)
+      .subscribe(async (status) => {
+        if(status === "SUBSCRIBED"){ await channel.track(myPresence); }
+      });
+    // swap the bar into "joined" mode
+    cbForm.style.display = "none";
+    cbJoined.style.display = "";
+    cbGroupName.textContent = "group " + code;
+  }
+  async function refetch(){
+    if(!groupCode || !sb) return;
+    try{
+      const { data:rows } = await sb.from("zines").select("data").eq("code", groupCode).limit(1);
+      if(rows && rows.length && rows[0].data) applyRemote(rows[0].data);
+    }catch(e){ console.error(e); }
+  }
+  function presentUsers(){
+    if(!channel || !channel.presenceState) return [];
+    const state = channel.presenceState(); const out = [];
+    // presence is keyed by user id — take ONE entry per key (the most recent),
+    // so re-tracking (e.g. on every edit) never shows a person twice.
+    Object.keys(state).forEach(k => {
+      const metas = state[k] || [];
+      if(!metas.length) return;
+      const m = metas[metas.length - 1];
+      out.push(m);
+    });
+    // extra safety: de-dupe by id in case a stale key lingers
+    const seen = {};
+    return out.filter(u => { const id = u && u.id; if(!id) return true; if(seen[id]) return false; seen[id]=1; return true; });
+  }
+  function paintPresence(){
+    const users = presentUsers();
+    // who's-here list in the bar
+    cbWho.innerHTML = "";
+    users.sort((a,b)=> (a.id===myId?-1:b.id===myId?1:0));
+    users.forEach(u => {
+      const span = document.createElement("span"); span.className = "cb-person";
+      const dot = document.createElement("span"); dot.className = "pdot"; dot.style.background = u.color || "#ccc";
+      const nm = document.createElement("span"); nm.textContent = (u.id===myId ? (u.name + " (you)") : u.name);
+      span.appendChild(dot); span.appendChild(nm); cbWho.appendChild(span);
+    });
+    // per-panel "editing" badges
+    if(!panelsEl) return;
+    panelsEl.querySelectorAll(".pcard-presence").forEach(el => el.remove());
+    const cards = panelsEl.querySelectorAll(".card");
+    users.forEach(u => {
+      if(u.id === myId || u.editing == null) return;
+      const card = cards[u.editing]; if(!card) return;
+      let box = card.querySelector(".pcard-presence");
+      if(!box){ box = document.createElement("div"); box.className = "pcard-presence"; card.appendChild(box); }
+      const b = document.createElement("span"); b.className = "pbadge";
+      b.style.background = u.color || "#ccc"; b.textContent = u.name + " editing";
+      box.appendChild(b);
+    });
+  }
+
+  // track which panel THIS user is editing
+  function setEditing(idx){
+    if(myPresence.editing === idx) return;
+    myPresence.editing = idx;
+    if(channel){ if(trackTimer) clearTimeout(trackTimer); trackTimer = setTimeout(() => channel.track(myPresence), 120); }
+  }
+  document.addEventListener("focusin", e => {
+    if(!groupCode) return;
+    const card = e.target.closest && e.target.closest(".card");
+    if(!card){ return; }
+    const idx = Array.from(panelsEl.querySelectorAll(".card")).indexOf(card);
+    if(idx >= 0) setEditing(idx);
+  });
+  document.addEventListener("focusout", () => {
+    if(!groupCode) return;
+    setTimeout(() => {
+      const ae = document.activeElement;
+      const card = ae && ae.closest && ae.closest(".card");
+      if(!card) setEditing(null);
+    }, 120);
+  });
+
+  function leaveGroup(){
+    if(channel){ try{ channel.untrack(); }catch(_){} sb.removeChannel(channel); channel = null; }
+    groupCode = null; pendingRemote = null; myPresence.editing = null;
+    cbCode.disabled = false; cbCode.value = "";
+    cbJoin.style.display = ""; cbLeave.style.display = "none";
+    cbForm.style.display = ""; cbJoined.style.display = "none";
+    cbWho.innerHTML = "";
+    if(panelsEl) panelsEl.querySelectorAll(".pcard-presence").forEach(el => el.remove());
+    setStatus("solo — not in a group", "");
+  }
+
+  cbJoin.addEventListener("click", () => {
+    const code = (cbCode.value || "").trim().toLowerCase().replace(/\s+/g,"-");
+    if(!code){ cbCode.focus(); return; }
+    joinGroup(code);
+  });
+  cbCode.addEventListener("keydown", e => { if(e.key === "Enter") cbJoin.click(); });
+  cbLeave.addEventListener("click", leaveGroup);
+
+  // ---- hook local edits into the sync push ----
+  // queueRender() calls collabNotify() on every change; we push if in a group.
+  function collabNotify(){ if(groupCode && Date.now() > suppressPushUntil) pushSoon(); }
+
+})();
+</script>
+</body>
+</html>
